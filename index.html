@@ -28,9 +28,48 @@
       padding: 2rem;
       background: #fff;
       margin: 1rem auto;
-      max-width: 900px;
+      max-width: 1100px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    section h2 {
+      color: #006994;
+    }
+    .products {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .product-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      width: 220px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .product-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .product-card h3 {
+      margin: 0.5rem 0;
+      color: #333;
+    }
+    .product-card button {
+      background: #006994;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .product-card button:hover {
+      background: #004d66;
     }
     footer {
       text-align: center;
@@ -47,6 +86,7 @@
     <nav>
       <a href="#about">About</a>
       <a href="#services">Services</a>
+      <a href="#products">Products</a>
       <a href="#contact">Contact</a>
     </nav>
   </header>
@@ -69,6 +109,42 @@
     </ul>
   </section>
 
+  <section id="products">
+    <h2>Our Products</h2>
+    <div class="products">
+      <div class="product-card">
+        <img src="https://i.ibb.co/tLw5LHv/bricks.jpg" alt="Bricks">
+        <h3>Bricks</h3>
+        <p>High-quality red bricks for strong foundations.</p>
+        <button onclick="addToCart('Bricks')">Add to Cart</button>
+      </div>
+      <div class="product-card">
+        <img src="https://i.ibb.co/7z1TX3V/steel-rods.jpg" alt="Steel Rods">
+        <h3>Steel Rods</h3>
+        <p>Durable steel rods for construction support.</p>
+        <button onclick="addToCart('Steel Rods')">Add to Cart</button>
+      </div>
+      <div class="product-card">
+        <img src="https://i.ibb.co/cTDGBwR/tiles.jpg" alt="Tiles">
+        <h3>Tiles</h3>
+        <p>Premium ceramic tiles for floors and walls.</p>
+        <button onclick="addToCart('Tiles')">Add to Cart</button>
+      </div>
+      <div class="product-card">
+        <img src="https://i.ibb.co/H7D4B0k/sanitary.jpg" alt="Sanitary">
+        <h3>Sanitary</h3>
+        <p>Modern sanitary products for bathrooms and kitchens.</p>
+        <button onclick="addToCart('Sanitary')">Add to Cart</button>
+      </div>
+      <div class="product-card">
+        <img src="https://i.ibb.co/vmWpkz7/cables.jpg" alt="Cables">
+        <h3>Cables</h3>
+        <p>Reliable electrical cables for safe installations.</p>
+        <button onclick="addToCart('Cables')">Add to Cart</button>
+      </div>
+    </div>
+  </section>
+
   <section id="contact">
     <h2>Contact Us</h2>
     <form id="contactForm">
@@ -80,12 +156,6 @@
   </section>
 
   <footer>
-    <p>&copy; 2025 BPCProc. All Rights Reserved.</p>
-  </footer>
-
-  <script src="website.js"></script>
-</body>
-</html>  <footer>
     <p>&copy; 2025 BPCProc. All Rights Reserved.</p>
   </footer>
 
