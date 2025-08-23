@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "name": "Clay Bricks",
+    "price": 8,
+    "unit": "per piece",
+    "image": "assets/product-bricks.jpg",
+    "category": "Bricks"
+  },
+  {
+    "id": 2,
+    "name": "Steel Rod 12mm",
+    "price": 650,
+    "unit": "per piece",
+    "image": "assets/product-rods.jpg",
+    "category": "Rods"
+  },
+  {
+    "id": 3,
+    "name": "Ceramic Tiles",
+    "price": 1200,
+    "unit": "per sqm",
+    "image": "assets/product-tiles.jpg",
+    "category": "Tiles"
+  }
+]
