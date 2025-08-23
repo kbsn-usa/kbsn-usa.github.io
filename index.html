@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BPCProc - Building Procurement Construction</title>
   <style>
     body {
@@ -10,103 +10,82 @@
       margin: 0;
       padding: 0;
       line-height: 1.6;
-      color: #333;
+      background-color: #f4f4f4;
     }
     header {
-      background: linear-gradient(to right, #0077b6, #00b4d8);
-      color: white;
-      padding: 40px 20px;
-      text-align: center;
-    }
-    header h1 {
-      font-size: 2.5rem;
-      margin: 0;
-    }
-    nav {
-      background: #023e8a;
-      padding: 10px;
+      background: #006994; /* pacific ocean blue */
+      color: #fff;
+      padding: 1.5rem;
       text-align: center;
     }
     nav a {
-      color: white;
-      margin: 0 15px;
+      margin: 0 10px;
+      color: #fff;
       text-decoration: none;
       font-weight: bold;
     }
     section {
-      padding: 40px 20px;
-      text-align: center;
-    }
-    section h2 {
-      margin-bottom: 20px;
-      color: #0077b6;
-    }
-    .services {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-    .service-card {
-      background: #f1f1f1;
+      padding: 2rem;
+      background: #fff;
+      margin: 1rem auto;
+      max-width: 900px;
       border-radius: 8px;
-      padding: 20px;
-      width: 250px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     footer {
-      background: #023e8a;
-      color: white;
       text-align: center;
-      padding: 20px;
+      padding: 1rem;
+      background: #222;
+      color: #fff;
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Welcome to BPCProc</h1>
-    <p>Your trusted partner in building procurement & construction materials</p>
+    <p>Your trusted partner for building materials procurement</p>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+    </nav>
   </header>
-
-  <nav>
-    <a href="#about">About</a>
-    <a href="#services">Services</a>
-    <a href="#contact">Contact</a>
-  </nav>
 
   <section id="about">
     <h2>About Us</h2>
     <p>
-      BPCProc specializes in sourcing high-quality building materials and providing
-      procurement solutions to construction companies worldwide.
+      We provide all kinds of building materials: bricks, rods, tiles,
+      sanitary items, cables, and more — delivered to your site at the best prices.
     </p>
   </section>
 
   <section id="services">
     <h2>Our Services</h2>
-    <div class="services">
-      <div class="service-card">
-        <h3>Procurement</h3>
-        <p>Streamlined supply chain solutions to ensure timely material delivery.</p>
-      </div>
-      <div class="service-card">
-        <h3>Materials</h3>
-        <p>Access to premium quality building construction materials at competitive prices.</p>
-      </div>
-      <div class="service-card">
-        <h3>Construction</h3>
-        <p>Support for mega projects with reliable, large-scale supply capabilities.</p>
-      </div>
-    </div>
+    <ul>
+      <li>Quick product search</li>
+      <li>Transparent pricing</li>
+      <li>Delivery cost & time estimation</li>
+      <li>Corporate & individual procurement</li>
+    </ul>
   </section>
 
   <section id="contact">
     <h2>Contact Us</h2>
-    <p>Email: info@bpcproc.com</p>
-    <p>Phone: +1 (234) 567-890</p>
+    <form id="contactForm">
+      <label>Name: <input type="text" id="name" required></label><br><br>
+      <label>Email: <input type="email" id="email" required></label><br><br>
+      <label>Message: <textarea id="message" required></textarea></label><br><br>
+      <button type="submit">Send</button>
+    </form>
   </section>
 
   <footer>
+    <p>&copy; 2025 BPCProc. All Rights Reserved.</p>
+  </footer>
+
+  <script src="website.js"></script>
+</body>
+</html>  <footer>
     <p>&copy; 2025 BPCProc. All Rights Reserved.</p>
   </footer>
 
