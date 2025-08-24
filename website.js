@@ -27,7 +27,7 @@ const MOCK_PRODUCTS = [
     price: 9500,
     leadTimeDays: 2,
     rating: 4.7,
-    image: "https://images.unsplash.com/photo-1606216794074-735e91b5f1c6?q=80&w=1200&auto=format&fit=crop",
+    image: "https://bpcproc.com/assets/Solid Clay Bricks (1st Class).webp",
   },
   {
     id: "p2",
@@ -40,7 +40,7 @@ const MOCK_PRODUCTS = [
     price: 88500,
     leadTimeDays: 3,
     rating: 4.8,
-    image: "https://images.unsplash.com/photo-1614767250754-5f8fd98399a6?q=80&w=1200&auto=format&fit=crop",
+    image: "https://bpcproc.com/assets/60 Grade Rod (12mm).webp",
   },
   {
     id: "p3",
@@ -53,7 +53,7 @@ const MOCK_PRODUCTS = [
     price: 520,
     leadTimeDays: 1,
     rating: 4.5,
-    image: "https://images.unsplash.com/photo-1610563166150-b34df4fe88fa?q=80&w=1200&auto=format&fit=crop",
+    image: "https://bpcproc.com/assets/OPC Cement (50kg).webp",
   },
   {
     id: "p4",
@@ -66,11 +66,11 @@ const MOCK_PRODUCTS = [
     price: 1450,
     leadTimeDays: 2,
     rating: 4.3,
-    image: "https://images.unsplash.com/photo-1523419409543-07f36caad8a7?q=80&w=1200&auto=format&fit=crop",
+    image: "https://bpcproc.com/assets/Ceramic Floor Tiles 24x24.webp",
   },
   {
     id: "p5",
-    name: "CPVC Pipe 1\"",
+    name: "CPVC Pipe 1 inch",
     category: "sanitary",
     brand: "Partex",
     origin: "Narayanganj",
@@ -79,7 +79,7 @@ const MOCK_PRODUCTS = [
     price: 320,
     leadTimeDays: 2,
     rating: 4.1,
-    image: "https://images.unsplash.com/photo-1565183997392-2f6f122e5912?q=80&w=1200&auto=format&fit=crop",
+    image: "https://bpcproc.com/assets/CPVC Pipe 1 inch.webp",
   },
   {
     id: "p6",
@@ -92,7 +92,7 @@ const MOCK_PRODUCTS = [
     price: 110,
     leadTimeDays: 1,
     rating: 4.6,
-    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=1200&auto=format&fit=crop",
+    image: "https://bpcproc.com/assets/3-Core Copper Cable 2.5mm.webp",
   },
 ];
 
