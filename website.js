@@ -1,258 +1,115 @@
-// --- Data & utils -----------------------------------------------------------
-const CATEGORIES = [
-  { key: "bricks", label: "Bricks" },
-  { key: "rod", label: "Rod (Rebar)" },
-  { key: "cement", label: "Cement" },
-  { key: "tiles", label: "Tiles" },
-  { key: "sanitary", label: "Sanitary" },
-  { key: "cables", label: "Electrical Cables" },
-  { key: "paint", label: "Paints" },
-  { key: "tools", label: "Tools" },
-];
+// =======================
+// BPC Website JavaScript
+// =======================
 
-const DISTRICTS = [
-  "Dhaka","Chattogram","Gazipur","Narayanganj","Cumilla",
-  "Rajshahi","Khulna","Sylhet","Barishal","Rangpur",
-];
+// Elements
+const productsEl = document.getElementById("products");
+const cartItemsEl = document.getElementById("cart-items");
+const cartSubtotalEl = document.getElementById("cart-subtotal");
+const cartCountEl = document.getElementById("cart-count");
+const categoryPillsEl = document.getElementById("category-pills");
+const searchInputEl = document.getElementById("search-input");
+const districtSelectEl = document.getElementById("district-select");
 
-// Products are loaded from /data/products.json
-let PRODUCTS = [];
+// Cart state
+let cart = JSON.parse(localStorage.getItem("bpc-cart")) || [];
+let district = localStorage.getItem("bpc-district") || "Dhaka";
+let productsData = [];
 
-// Currency
-function formatBDT(n) {
-  return new Intl.NumberFormat("en-BD", {
-    style: "currency",
-    currency: "BDT",
-    maximumFractionDigits: 0,
-  }).format(n ?? 0);
+// =======================
+// Utility Functions
+// =======================
+
+// Format currency in BDT
+function formatBDT(amount) {
+  return `৳${amount.toLocaleString("en-BD")}`;
 }
 
-function estimateDeliveryCost(district, weightKg) {
-  const base = 150;
-  const distanceFactor = {
-    Dhaka: 1, Gazipur: 1.1, Narayanganj: 1.1, Cumilla: 1.3, Chattogram: 1.6,
-    Rajshahi: 1.5, Khulna: 1.5, Sylhet: 1.6, Barishal: 1.4, Rangpur: 1.7,
-  };
-  const d = distanceFactor[district] ?? 1.5;
-  const perKg = 8;
-  const w = Number.isFinite(+weightKg) && +weightKg > 0 ? +weightKg : 1;
-  return Math.round(base * d + w * perKg);
-}
-
-function leadTimeLabel(days) {
-  if (days <= 1) return "Tomorrow";
-  if (days === 2) return "In 2 days";
-  return `${days} days`;
-}
-
-// --- State ------------------------------------------------------------------
-let query = "";
-let category = null; // key or null
-let district = "Dhaka";
-let selectedProduct = null;
-
-// --- DOM refs ---------------------------------------------------------------
-const pillsEl = document.getElementById("categoryPills");
-const gridEl = document.getElementById("productsGrid");
-const searchEl = document.getElementById("searchInput");
-const districtEl = document.getElementById("districtSelect");
-const cartCountEl = document.getElementById("cartCount");
-
-const detailsSheet = document.getElementById("detailsSheet");
-const closeDetailsBtn = document.getElementById("closeDetailsBtn");
-const detailsTitle = document.getElementById("detailsTitle");
-const detailsImage = document.getElementById("detailsImage");
-const detailsPrice = document.getElementById("detailsPrice");
-const detailsUnit = document.getElementById("detailsUnit");
-const detailsLead = document.getElementById("detailsLead");
-const detailsOrigin = document.getElementById("detailsOrigin");
-const detailsQuality = document.getElementById("detailsQuality");
-const detailsEstimator = document.getElementById("detailsEstimator");
-
-const cartDrawer = document.getElementById("cartDrawer");
-const closeCartBtn = document.getElementById("closeCartBtn");
-const openCartBtn = document.getElementById("openCartBtn");
-const cartItemsEl = document.getElementById("cartItems");
-const cartSubtotalEl = document.getElementById("cartSubtotal");
-
-// --- Cart (persistent) ------------------------------------------------------
-let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
+// Save cart & district in localStorage
 function saveCart() {
-  localStorage.setItem("cart", JSON.stringify(cart));
+  localStorage.setItem("bpc-cart", JSON.stringify(cart));
+  localStorage.setItem("bpc-district", district);
 }
 
+// Count cart items
 function cartItemCount() {
-  return cart.reduce((sum, it) => sum + (it.qty || 0), 0);
+  return cart.reduce((sum, item) => sum + (item.qty || 0), 0);
 }
 
-// Load products into PRODUCTS array
-async function loadProducts() {
-  try {
-    const response = await fetch("data/products.json");
-    PRODUCTS = await response.json();
-  } catch (error) {
-    console.error("Error loading products:", error);
-  }
-}
+// =======================
+// Product Rendering
+// =======================
 
-
-// --- Rendering --------------------------------------------------------------
-function renderDistricts() {
-  districtEl.innerHTML = DISTRICTS.map(d => `<option value="${d}">${d}</option>`).join("");
-  districtEl.value = district;
-}
-
-function renderPills() {
-  const active = category === null;
-  const pill = (key, label, isActive) => `
-    <button data-cat="${key ?? ""}"
-      class="px-3 py-1 text-sm rounded-full border ${isActive ? "bg-black text-white border-black" : "bg-neutral-100"}">
-      ${label}
-    </button>
+// Product card template
+function productCard(p) {
+  return `
+    <div class="border rounded-xl p-4 flex flex-col">
+      <div class="h-32 bg-gray-100 mb-2 rounded-md bg-center bg-cover" style="background-image: url('${p.image}')"></div>
+      <h3 class="font-semibold text-sm line-clamp-2">${p.name}</h3>
+      <div class="text-xs text-neutral-500">${p.brand || ""}</div>
+      <div class="text-xs text-neutral-500">Unit: ${p.unit || ""}</div>
+      <div class="font-bold mt-1">${formatBDT(p.price)}</div>
+      <div class="mt-auto flex gap-2 pt-2">
+        <button class="flex-1 bg-blue-600 text-white py-1 rounded text-sm" data-add="${p.id}">Add to Cart</button>
+        <button class="px-2 py-1 border rounded text-sm" data-detail="${p.id}">Details</button>
+      </div>
+    </div>
   `;
-  const first = pill("", "All", active);
-  const rest = CATEGORIES.map(c => pill(c.key, c.label, category === c.key)).join("");
-  pillsEl.innerHTML = first + rest;
+}
 
-  // Events for pills
-  pillsEl.querySelectorAll("button").forEach(btn => {
+// Render products by category & search
+function renderProducts(category = "all", query = "") {
+  let filtered = productsData;
+
+  if (category !== "all") {
+    filtered = filtered.filter(p => p.category === category);
+  }
+  if (query) {
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+
+  if (!filtered.length) {
+    productsEl.innerHTML = `<div class="text-center text-neutral-500 py-10">No products found.</div>`;
+    return;
+  }
+
+  productsEl.innerHTML = `
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      ${filtered.map(productCard).join("")}
+    </div>
+  `;
+
+  // Attach add-to-cart handlers
+  productsEl.querySelectorAll("[data-add]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const key = btn.getAttribute("data-cat");
-      category = key ? key : null;
-      renderPills();     // update active styles
-      renderProducts();  // re-render grid
+      addToCart(btn.dataset.add);
     });
   });
 }
 
-function matches(p) {
-  const catOk = !category || p.category === category;
-  const q = query.trim().toLowerCase();
-  const qOk = !q
-    || p.name?.toLowerCase().includes(q)
-    || p.brand?.toLowerCase().includes(q)
-    || p.category?.toLowerCase().includes(q);
-  return catOk && qOk;
+// =======================
+// Cart Functions
+// =======================
+
+function addToCart(productId) {
+  const existing = cart.find(it => it.id === productId);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    const product = productsData.find(p => p.id === productId);
+    if (product) cart.push({ ...product, qty: 1 });
+  }
+  renderCart();
 }
 
-function stars(rating) {
-  const filled = Math.round(rating || 0);
-  return Array.from({ length: 5 })
-    .map((_, i) =>
-      `<i data-lucide="star" class="w-4 h-4 ${i < filled ? "fill-current text-amber-600" : "text-amber-600"}"></i>`
-    )
-    .join("");
-}
-
-function productCard(p) {
-  return `
-    <div class="bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow">
-      <div class="h-36 w-full bg-cover bg-center cursor-pointer"
-           style="background-image:url('${p.image}')"
-           data-open-details="${p.id}"></div>
-      <div class="p-4 space-y-2">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="font-medium leading-tight line-clamp-2">${p.name}</div>
-            <div class="text-xs text-neutral-500">${p.brand ?? ""}</div>
-          </div>
-          <span class="badge badge-emerald">${p.quality ?? "Standard"}</span>
-        </div>
-        <div class="flex items-center gap-1 text-amber-600">
-          ${stars(p.rating)} <span class="text-xs ml-1 text-neutral-500">${(p.rating ?? 0).toFixed(1)}</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-lg font-semibold">${formatBDT(p.price)}</div>
-            <div class="text-xs text-neutral-500">${p.unit ?? ""}</div>
-          </div>
-          <div class="text-xs text-neutral-600 flex items-center gap-1">
-            <i data-lucide="truck" class="h-4 w-4"></i> ${leadTimeLabel(p.leadTimeDays ?? 2)}
-          </div>
-        </div>
-        <div class="flex gap-2 pt-1">
-          <button class="flex-1 bg-black text-white rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2"
-                  data-add="${p.id}">
-            <i data-lucide="shopping-cart" class="h-4 w-4"></i> Add
-          </button>
-          <button class="border rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2"
-                  data-open-details="${p.id}">
-            <i data-lucide="info" class="h-4 w-4"></i> Details
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderEstimator(mountEl, defaultDistrict = "Dhaka", defaultWeight = 1000) {
-  mountEl.innerHTML = `
-    <div class="border rounded-2xl bg-white">
-      <div class="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-        <div class="col-span-2">
-          <label class="text-xs text-neutral-600">Delivery District</label>
-          <select class="h-11 w-full border rounded-lg px-3" id="estDistrict">
-            ${DISTRICTS.map(d => `<option value="${d}">${d}</option>`).join("")}
-          </select>
-        </div>
-        <div>
-          <label class="text-xs text-neutral-600">Estimated Weight (kg)</label>
-          <input type="number" id="estWeight" class="h-11 w-full border rounded-lg px-3" min="1" />
-        </div>
-        <div>
-          <div class="text-xs text-neutral-600">Approx. Delivery Cost</div>
-          <div class="text-2xl font-bold" id="estCost"></div>
-          <div class="text-xs text-neutral-500">Time: 1–3 days</div>
-        </div>
-      </div>
-    </div>
-  `;
-  const estD = mountEl.querySelector("#estDistrict");
-  const estW = mountEl.querySelector("#estWeight");
-  const estC = mountEl.querySelector("#estCost");
-  estD.value = defaultDistrict;
-  estW.value = String(defaultWeight);
-  const update = () => {
-    estC.textContent = formatBDT(estimateDeliveryCost(estD.value, parseInt(estW.value || "1", 10)));
-  };
-  estD.addEventListener("change", update);
-  estW.addEventListener("input", update);
-  update();
-}
-
-// --- Details ---------------------------------------------------------------
-function openDetails(product) {
-  selectedProduct = product;
-  detailsTitle.textContent = product.name ?? "Product";
-  detailsImage.style.backgroundImage = `url('${product.image}')`;
-  detailsPrice.textContent = formatBDT(product.price);
-  detailsUnit.textContent = `Unit: ${product.unit ?? ""}`;
-  detailsLead.textContent = `Lead Time: ${leadTimeLabel(product.leadTimeDays ?? 2)}`;
-  detailsOrigin.textContent = `Origin: ${product.origin ?? ""}`;
-  detailsQuality.textContent = `Quality: ${product.quality ?? "Standard"}`;
-
-  renderEstimator(detailsEstimator, district, 1000);
-
-  detailsSheet.classList.remove("hidden");
-  detailsSheet.classList.add("sheet-open");
-  lucide.createIcons();
-}
-
-function closeDetails() {
-  detailsSheet.classList.add("hidden");
-  detailsSheet.classList.remove("sheet-open");
-  selectedProduct = null;
-}
-
-// --- Cart -------------------------------------------------------------------
 function renderCart() {
   if (!cart.length) {
     cartItemsEl.innerHTML = `<div class="text-sm text-neutral-500">Cart is empty.</div>`;
     cartSubtotalEl.textContent = formatBDT(0);
     cartCountEl.textContent = "0";
     saveCart();
-    lucide.createIcons();
     return;
   }
 
@@ -267,8 +124,8 @@ function renderCart() {
         <div class="flex items-center gap-2">
           <button class="h-8 w-8 border rounded grid place-items-center" data-dec="${item.id}">-</button>
           <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${item.id}">+</button>
-          <button class="h-8 w-8 border rounded grid place-items-center" data-del="${item.id}" aria-label="Remove ${item.name}">
-            <i data-lucide="trash-2" class="h-4 w-4"></i>
+          <button class="h-8 w-8 border rounded grid place-items-center" data-del="${item.id}">
+            🗑
           </button>
         </div>
       </div>
@@ -276,126 +133,88 @@ function renderCart() {
   `).join("");
 
   const subtotal = cart.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
-  cartSubtotalEl.textContent = formatBDT(subtotal);
+
+  // delivery rule
+  const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(district);
+  const deliveryCost = insideDhaka ? 150 : 200;
+  const total = subtotal + deliveryCost;
+
+  // update cart footer
+  cartSubtotalEl.innerHTML = `
+    <div class="flex justify-between text-sm">
+      <span>Subtotal</span><span>${formatBDT(subtotal)}</span>
+    </div>
+    <div class="flex justify-between text-sm">
+      <span>Delivery</span><span>${formatBDT(deliveryCost)}</span>
+    </div>
+    <div class="flex justify-between font-semibold">
+      <span>Total</span><span>${formatBDT(total)}</span>
+    </div>
+  `;
+
   cartCountEl.textContent = String(cartItemCount());
 
-  // quantity + remove handlers
-  cartItemsEl.querySelectorAll("[data-inc]").forEach(btn => {
+  // Handlers for + / - / delete
+  cartItemsEl.querySelectorAll("[data-inc]").forEach(btn =>
     btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-inc");
-      const it = cart.find(x => x.id === id);
-      if (it) it.qty += 1;
+      const item = cart.find(it => it.id === btn.dataset.inc);
+      if (item) item.qty += 1;
       renderCart();
-      saveCart();
-    });
-  });
-  cartItemsEl.querySelectorAll("[data-dec]").forEach(btn => {
+    })
+  );
+  cartItemsEl.querySelectorAll("[data-dec]").forEach(btn =>
     btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-dec");
-      const it = cart.find(x => x.id === id);
-      if (it) {
-        it.qty = Math.max(1, it.qty - 1);
-      }
+      const item = cart.find(it => it.id === btn.dataset.dec);
+      if (item && item.qty > 1) item.qty -= 1;
+      else cart = cart.filter(it => it.id !== btn.dataset.dec);
       renderCart();
-      saveCart();
-    });
-  });
-  cartItemsEl.querySelectorAll("[data-del]").forEach(btn => {
+    })
+  );
+  cartItemsEl.querySelectorAll("[data-del]").forEach(btn =>
     btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-del");
-      cart = cart.filter(x => x.id !== id);
+      cart = cart.filter(it => it.id !== btn.dataset.del);
       renderCart();
-      saveCart();
-    });
-  });
+    })
+  );
 
-  saveCart();
-  lucide.createIcons();
-}
-
-function addToCart(product) {
-  const existing = cart.find(p => p.id === product.id);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.push({ ...product, qty: 1 });
-  }
-  renderCart();
   saveCart();
 }
 
-function openCart() {
-  cartDrawer.classList.remove("hidden");
-  cartDrawer.classList.add("sheet-open");
-}
-function closeCart() {
-  cartDrawer.classList.add("hidden");
-  cartDrawer.classList.remove("sheet-open");
-}
+// =======================
+// Init
+// =======================
 
-// --- Wiring -----------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const res = await fetch("data/products.json");
-    const products = await res.json();
-    renderProducts(products);
-  } catch (error) {
-    console.error("Error loading products:", error);
-  }
-});
+async function init() {
+  // Load products.json
+  const res = await fetch("data/products.json");
+  productsData = await res.json();
 
-function renderProducts(products) {
-  const container = document.getElementById("products-container"); // your grid element
-  container.innerHTML = "";
+  // Render categories
+  const categories = ["all", ...new Set(productsData.map(p => p.category))];
+  categoryPillsEl.innerHTML = categories
+    .map(c => `<button class="px-3 py-1 border rounded text-sm" data-cat="${c}">${c}</button>`)
+    .join("");
 
-  products.forEach((p) => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}">
-      <h3>${p.name}</h3>
-      <p>${p.brand} — ${p.unit}</p>
-      <p>৳${p.price}</p>
-    `;
-    container.appendChild(card);
-  });
-}
-
-  // District
-  renderDistricts();
-  districtEl.addEventListener("change", (e) => {
-    district = e.target.value;
-  });
-
-  // Pills
-  renderPills();
+  categoryPillsEl.querySelectorAll("[data-cat]").forEach(btn =>
+    btn.addEventListener("click", () => renderProducts(btn.dataset.cat, searchInputEl.value))
+  );
 
   // Search
-  searchEl.addEventListener("input", (e) => {
-    query = e.target.value || "";
-    renderProducts();
+  searchInputEl.addEventListener("input", () => {
+    renderProducts("all", searchInputEl.value);
   });
 
-  // Buttons
-  closeDetailsBtn.addEventListener("click", closeDetails);
-  openCartBtn.addEventListener("click", openCart);
-  closeCartBtn.addEventListener("click", closeCart);
-
-  // Estimator (hero)
-  const heroMount = document.getElementById("deliveryEstimatorMount");
-  renderEstimator(heroMount, district, 1000);
-
-  // Quote form (demo)
-  const quoteForm = document.getElementById("quoteForm");
-  quoteForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    alert("Thanks! We will contact you shortly.");
-    quoteForm.reset();
+  // District select
+  districtSelectEl.value = district;
+  districtSelectEl.addEventListener("change", e => {
+    district = e.target.value;
+    saveCart();
+    renderCart();
   });
 
-  // Load products then render
-  await loadProducts();
+  // Initial render
   renderProducts();
   renderCart();
-  lucide.createIcons();
-});
+}
+
+init();
