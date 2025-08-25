@@ -276,7 +276,26 @@ function renderCart() {
   `).join("");
 
   const subtotal = cart.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
-  cartSubtotalEl.textContent = formatBDT(subtotal);
+
+  // Delivery cost based on district
+  const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"];
+  const deliveryCost = insideDhaka.includes(district) ? 150 : 200;
+  const grandTotal = subtotal + deliveryCost;
+  // Update UI
+cartSubtotalEl.innerHTML = `
+  <div class="flex justify-between">
+    <span>Subtotal</span>
+    <span>${formatBDT(subtotal)}</span>
+  </div>
+  <div class="flex justify-between">
+    <span>Delivery</span>
+    <span>${formatBDT(deliveryCost)}</span>
+  </div>
+  <div class="flex justify-between font-bold border-t mt-2 pt-2">
+    <span>Total</span>
+    <span>${formatBDT(grandTotal)}</span>
+  </div>
+`;
   cartCountEl.textContent = String(cartItemCount());
 
   // quantity + remove handlers
@@ -365,6 +384,7 @@ function renderProducts(products) {
   renderDistricts();
   districtEl.addEventListener("change", (e) => {
     district = e.target.value;
+    renderCart();
   });
 
   // Pills
