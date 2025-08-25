@@ -58,38 +58,6 @@ function productCard(p) {
 }
 
 // Render products by category & search
-async function loadProducts() {
-  try {
-    const res = await fetch("/data/products.json");
-    const products = await res.json();
-    renderProducts(products);
-  } catch (err) {
-    console.error("Error loading products:", err);
-  }
-}
-
-function renderProducts(products) {
-  const grid = document.getElementById("productsGrid");
-  grid.innerHTML = "";
-
-  products.forEach((p) => {
-    grid.innerHTML += `
-      <div class="border rounded-lg p-4 shadow bg-white">
-        <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover mb-3 rounded">
-        <h3 class="font-bold text-lg">${p.name}</h3>
-        <p class="text-sm text-gray-600">${p.brand} - ${p.quality}</p>
-        <p class="text-sm">Unit: ${p.unit}</p>
-        <p class="font-semibold mt-2">৳${p.price.toLocaleString()}</p>
-        <button onclick="addToCart('${p.id}')" class="mt-3 bg-blue-600 text-white px-3 py-1 rounded">
-          Add to Cart
-        </button>
-      </div>
-    `;
-  });
-}
-
-document.addEventListener("DOMContentLoaded", loadProducts);
-
 function renderProducts(category = "all", query = "") {
   let filtered = productsData;
 
@@ -217,36 +185,39 @@ function renderCart() {
 // =======================
 
 async function init() {
-  // Load products.json
-  const res = await fetch("data/products.json");
-  productsData = await res.json();
+  try {
+    const res = await fetch("/data/products.json"); // ✅ use leading slash
+    productsData = await res.json();
 
-  // Render categories
-  const categories = ["all", ...new Set(productsData.map(p => p.category))];
-  categoryPillsEl.innerHTML = categories
-    .map(c => `<button class="px-3 py-1 border rounded text-sm" data-cat="${c}">${c}</button>`)
-    .join("");
+    // Render categories
+    const categories = ["all", ...new Set(productsData.map(p => p.category))];
+    categoryPillsEl.innerHTML = categories
+      .map(c => `<button class="px-3 py-1 border rounded text-sm" data-cat="${c}">${c}</button>`)
+      .join("");
 
-  categoryPillsEl.querySelectorAll("[data-cat]").forEach(btn =>
-    btn.addEventListener("click", () => renderProducts(btn.dataset.cat, searchInputEl.value))
-  );
+    categoryPillsEl.querySelectorAll("[data-cat]").forEach(btn =>
+      btn.addEventListener("click", () => renderProducts(btn.dataset.cat, searchInputEl.value))
+    );
 
-  // Search
-  searchInputEl.addEventListener("input", () => {
-    renderProducts("all", searchInputEl.value);
-  });
+    // Search
+    searchInputEl.addEventListener("input", () => {
+      renderProducts("all", searchInputEl.value);
+    });
 
-  // District select
-  districtSelectEl.value = district;
-  districtSelectEl.addEventListener("change", e => {
-    district = e.target.value;
-    saveCart();
+    // District select
+    districtSelectEl.value = district;
+    districtSelectEl.addEventListener("change", e => {
+      district = e.target.value;
+      saveCart();
+      renderCart();
+    });
+
+    // Initial render
+    renderProducts();
     renderCart();
-  });
-
-  // Initial render
-  renderProducts();
-  renderCart();
+  } catch (err) {
+    console.error("Error initializing site:", err);
+  }
 }
 
 init();
