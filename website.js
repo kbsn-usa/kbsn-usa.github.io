@@ -15,23 +15,16 @@ const DISTRICTS = [
   "Rajshahi","Khulna","Sylhet","Barishal","Rangpur",
 ];
 
-let PRODUCTS = []; // products will load here dynamically
+// Products are loaded from /data/products.json
+let PRODUCTS = [];
 
-async function loadProducts() {
-  try {
-    const res = await fetch("data/products.json");
-    PRODUCTS = await res.json();
-  } catch (err) {
-    console.error("Failed to load products:", err);
-  }
-}
-
+// Currency
 function formatBDT(n) {
   return new Intl.NumberFormat("en-BD", {
     style: "currency",
     currency: "BDT",
     maximumFractionDigits: 0,
-  }).format(n);
+  }).format(n ?? 0);
 }
 
 function estimateDeliveryCost(district, weightKg) {
@@ -42,7 +35,8 @@ function estimateDeliveryCost(district, weightKg) {
   };
   const d = distanceFactor[district] ?? 1.5;
   const perKg = 8;
-  return Math.round(base * d + weightKg * perKg);
+  const w = Number.isFinite(+weightKg) && +weightKg > 0 ? +weightKg : 1;
+  return Math.round(base * d + w * perKg);
 }
 
 function leadTimeLabel(days) {
@@ -81,32 +75,54 @@ const openCartBtn = document.getElementById("openCartBtn");
 const cartItemsEl = document.getElementById("cartItems");
 const cartSubtotalEl = document.getElementById("cartSubtotal");
 
-// --- Init UI ----------------------------------------------------------------
+// --- Cart (persistent) ------------------------------------------------------
+let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+function saveCart() {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function cartItemCount() {
+  return cart.reduce((sum, it) => sum + (it.qty || 0), 0);
+}
+
+// --- Load products ----------------------------------------------------------
+async function loadProducts() {
+  try {
+    const res = await fetch("data/products.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    PRODUCTS = await res.json();
+  } catch (err) {
+    console.error("Failed to load products:", err);
+    PRODUCTS = []; // keep safe
+  }
+}
+
+// --- Rendering --------------------------------------------------------------
 function renderDistricts() {
-  districtEl.innerHTML = DISTRICTS.map(
-    d => `<option value="${d}">${d}</option>`
-  ).join("");
+  districtEl.innerHTML = DISTRICTS.map(d => `<option value="${d}">${d}</option>`).join("");
   districtEl.value = district;
 }
 
 function renderPills() {
-  const allActive = category === null;
-  const pill = (key, label, active) => `
+  const active = category === null;
+  const pill = (key, label, isActive) => `
     <button data-cat="${key ?? ""}"
-      class="px-3 py-1 text-sm rounded-full border ${active ? 'bg-black text-white border-black' : 'bg-neutral-100'}">
+      class="px-3 py-1 text-sm rounded-full border ${isActive ? "bg-black text-white border-black" : "bg-neutral-100"}">
       ${label}
     </button>
   `;
-  const first = pill("", "All", allActive);
+  const first = pill("", "All", active);
   const rest = CATEGORIES.map(c => pill(c.key, c.label, category === c.key)).join("");
   pillsEl.innerHTML = first + rest;
 
-  // Events
+  // Events for pills
   pillsEl.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
       const key = btn.getAttribute("data-cat");
       category = key ? key : null;
-      renderPills(); // refresh active styles
+      renderPills();     // update active styles
+      renderProducts();  // re-render grid
     });
   });
 }
@@ -114,109 +130,85 @@ function renderPills() {
 function matches(p) {
   const catOk = !category || p.category === category;
   const q = query.trim().toLowerCase();
-  const qOk =
-    !q ||
-    p.name.toLowerCase().includes(q) ||
-    p.brand.toLowerCase().includes(q) ||
-    p.category.toLowerCase().includes(q);
+  const qOk = !q
+    || p.name?.toLowerCase().includes(q)
+    || p.brand?.toLowerCase().includes(q)
+    || p.category?.toLowerCase().includes(q);
   return catOk && qOk;
 }
 
 function stars(rating) {
-  const filled = Math.round(rating);
+  const filled = Math.round(rating || 0);
   return Array.from({ length: 5 })
     .map((_, i) =>
-      `<i data-lucide="star" class="w-4 h-4 ${i < filled ? 'fill-current text-amber-600' : 'text-amber-600'}"></i>`
+      `<i data-lucide="star" class="w-4 h-4 ${i < filled ? "fill-current text-amber-600" : "text-amber-600"}"></i>`
     )
     .join("");
 }
 
 function productCard(p) {
   return `
-  <div class="bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow">
-    <div class="h-36 w-full bg-cover bg-center cursor-pointer"
-         style="background-image:url('${p.image}')"
-         data-open-details="${p.id}"></div>
-    <div class="p-4 space-y-2">
-      <div class="flex items-start justify-between gap-2">
-        <div>
-          <div class="font-medium leading-tight line-clamp-2">${p.name}</div>
-          <div class="text-xs text-neutral-500">${p.brand}</div>
+    <div class="bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow">
+      <div class="h-36 w-full bg-cover bg-center cursor-pointer"
+           style="background-image:url('${p.image}')"
+           data-open-details="${p.id}"></div>
+      <div class="p-4 space-y-2">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="font-medium leading-tight line-clamp-2">${p.name}</div>
+            <div class="text-xs text-neutral-500">${p.brand ?? ""}</div>
+          </div>
+          <span class="badge badge-emerald">${p.quality ?? "Standard"}</span>
         </div>
-        <span class="badge badge-emerald">${p.quality}</span>
-      </div>
-      <div class="flex items-center gap-1 text-amber-600">
-        ${stars(p.rating)} <span class="text-xs ml-1 text-neutral-500">${p.rating.toFixed(1)}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-lg font-semibold">${formatBDT(p.price)}</div>
-          <div class="text-xs text-neutral-500">${p.unit}</div>
+        <div class="flex items-center gap-1 text-amber-600">
+          ${stars(p.rating)} <span class="text-xs ml-1 text-neutral-500">${(p.rating ?? 0).toFixed(1)}</span>
         </div>
-        <div class="text-xs text-neutral-600 flex items-center gap-1">
-          <i data-lucide="truck" class="h-4 w-4"></i> ${leadTimeLabel(p.leadTimeDays)}
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-lg font-semibold">${formatBDT(p.price)}</div>
+            <div class="text-xs text-neutral-500">${p.unit ?? ""}</div>
+          </div>
+          <div class="text-xs text-neutral-600 flex items-center gap-1">
+            <i data-lucide="truck" class="h-4 w-4"></i> ${leadTimeLabel(p.leadTimeDays ?? 2)}
+          </div>
         </div>
-      </div>
-      <div class="flex gap-2 pt-1">
-        <button class="flex-1 bg-black text-white rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2"
-                data-add="${p.id}">
-          <i data-lucide="shopping-cart" class="h-4 w-4"></i> Add
-        </button>
-        <button class="border rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2"
-                data-open-details="${p.id}">
-          <i data-lucide="info" class="h-4 w-4"></i> Details
-        </button>
+        <div class="flex gap-2 pt-1">
+          <button class="flex-1 bg-black text-white rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2"
+                  data-add="${p.id}">
+            <i data-lucide="shopping-cart" class="h-4 w-4"></i> Add
+          </button>
+          <button class="border rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2"
+                  data-open-details="${p.id}">
+            <i data-lucide="info" class="h-4 w-4"></i> Details
+          </button>
+        </div>
       </div>
     </div>
-  </div>`;
+  `;
 }
 
-// ✅ Cart (persistent with localStorage)
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-// ✅ Utility Functions
-function saveCart() {
-  localStorage.setItem("cart", JSON.stringify(cart));
-}
-
-// ✅ Render Products
 function renderProducts() {
-  const grid = document.getElementById("productsGrid");
-  grid.innerHTML = "";
+  const list = PRODUCTS.filter(matches);
+  gridEl.innerHTML = list.map(productCard).join("");
 
-  PRODUCTS.filter(matches).forEach(product => {
-    const card = document.createElement("div");
-    card.className = "bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer";
-    card.innerHTML = `
-      <img src="${product.image}" alt="${product.name}" 
-        loading="lazy" class="w-full h-40 object-cover">
-      <div class="p-4 space-y-2">
-        <h3 class="font-semibold text-lg">${product.name}</h3>
-        <p class="text-black font-bold">${formatBDT(product.price)} <span class="text-sm font-normal text-neutral-500">/${product.unit}</span></p>
-        <button class="bg-black text-white px-4 py-2 rounded-lg text-sm w-full hover:bg-neutral-800">Add to Cart</button>
-      </div>
-    `;
-    card.querySelector("button").addEventListener("click", () => addToCart(product));
-    card.querySelector("img").addEventListener("click", () => openDetails(product));
-    grid.appendChild(card);
-  });
-}
-
-  // hook buttons
+  // Bind dynamic buttons
   gridEl.querySelectorAll("[data-add]").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-add");
       const p = PRODUCTS.find(x => x.id === id);
-      addToCart(p);
-      openCart();
+      if (p) {
+        addToCart(p);
+        openCart();
+      }
       lucide.createIcons();
     });
   });
+
   gridEl.querySelectorAll("[data-open-details]").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-open-details");
       const p = PRODUCTS.find(x => x.id === id);
-      openDetails(p);
+      if (p) openDetails(p);
       lucide.createIcons();
     });
   });
@@ -252,79 +244,114 @@ function renderEstimator(mountEl, defaultDistrict = "Dhaka", defaultWeight = 100
   estD.value = defaultDistrict;
   estW.value = String(defaultWeight);
   const update = () => {
-    estC.textContent = formatBDT(estimateDeliveryCost(estD.value, parseInt(estW.value || "0")));
+    estC.textContent = formatBDT(estimateDeliveryCost(estD.value, parseInt(estW.value || "1", 10)));
   };
   estD.addEventListener("change", update);
   estW.addEventListener("input", update);
   update();
 }
 
-// ✅ Product Details Modal
+// --- Details ---------------------------------------------------------------
 function openDetails(product) {
-  const sheet = document.getElementById("detailsSheet");
-  document.getElementById("detailsImage").style.backgroundImage = `url(${product.image})`;
-  document.getElementById("detailsTitle").textContent = product.name;
-  document.getElementById("detailsPrice").textContent = formatBDT(product.price);
-  document.getElementById("detailsUnit").textContent = `Unit: ${product.unit}`;
-  document.getElementById("detailsLead").textContent = `Lead Time: ${leadTimeLabel(product.leadTimeDays)}`;
-  document.getElementById("detailsOrigin").textContent = `Origin: ${product.origin}`;
-  document.getElementById("detailsQuality").textContent = `Quality: ${product.quality}`;
+  selectedProduct = product;
+  detailsTitle.textContent = product.name ?? "Product";
+  detailsImage.style.backgroundImage = `url('${product.image}')`;
+  detailsPrice.textContent = formatBDT(product.price);
+  detailsUnit.textContent = `Unit: ${product.unit ?? ""}`;
+  detailsLead.textContent = `Lead Time: ${leadTimeLabel(product.leadTimeDays ?? 2)}`;
+  detailsOrigin.textContent = `Origin: ${product.origin ?? ""}`;
+  detailsQuality.textContent = `Quality: ${product.quality ?? "Standard"}`;
 
-  sheet.classList.remove("hidden");
-  sheet.focus();
+  renderEstimator(detailsEstimator, district, 1000);
+
+  detailsSheet.classList.remove("hidden");
+  detailsSheet.classList.add("sheet-open");
+  lucide.createIcons();
 }
 
 function closeDetails() {
-  document.getElementById("detailsSheet").classList.add("hidden");
+  detailsSheet.classList.add("hidden");
+  detailsSheet.classList.remove("sheet-open");
+  selectedProduct = null;
 }
 
-// ✅ Cart Handling
+// --- Cart -------------------------------------------------------------------
 function renderCart() {
-  const itemsContainer = document.getElementById("cartItems");
-  const subtotalEl = document.getElementById("cartSubtotal");
-  const countEl = document.getElementById("cartCount");
+  if (!cart.length) {
+    cartItemsEl.innerHTML = `<div class="text-sm text-neutral-500">Cart is empty.</div>`;
+    cartSubtotalEl.textContent = formatBDT(0);
+    cartCountEl.textContent = "0";
+    saveCart();
+    lucide.createIcons();
+    return;
+  }
 
-  itemsContainer.innerHTML = "";
-
-  let subtotal = 0;
-
-  cart.forEach(item => {
-    subtotal += item.price * item.qty;
-    const itemEl = document.createElement("div");
-    itemEl.className = "flex justify-between items-center border-b pb-2";
-    itemEl.innerHTML = `
-      <div>
-        <p class="font-medium">${item.name}</p>
-        <p class="text-sm text-neutral-500">${item.qty} × ${formatBDT(item.price)}</p>
+  cartItemsEl.innerHTML = cart.map(item => `
+    <div class="border rounded-xl">
+      <div class="p-3 flex items-center gap-3">
+        <div class="h-14 w-14 rounded bg-cover bg-center" style="background-image:url('${item.image}')"></div>
+        <div class="flex-1">
+          <div class="text-sm font-medium line-clamp-1">${item.name}</div>
+          <div class="text-xs text-neutral-500">${item.qty} × ${formatBDT(item.price)} ${item.unit ? `(${item.unit})` : ""}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="h-8 w-8 border rounded grid place-items-center" data-dec="${item.id}">-</button>
+          <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${item.id}">+</button>
+          <button class="h-8 w-8 border rounded grid place-items-center" data-del="${item.id}" aria-label="Remove ${item.name}">
+            <i data-lucide="trash-2" class="h-4 w-4"></i>
+          </button>
+        </div>
       </div>
-      <button aria-label="Remove ${item.name}">
-        <i data-lucide="trash-2" class="h-5 w-5 text-red-500"></i>
-      </button>
-    `;
-    itemEl.querySelector("button").addEventListener("click", () => removeFromCart(item.id));
-    itemsContainer.appendChild(itemEl);
+    </div>
+  `).join("");
+
+  const subtotal = cart.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
+  cartSubtotalEl.textContent = formatBDT(subtotal);
+  cartCountEl.textContent = String(cartItemCount());
+
+  // quantity + remove handlers
+  cartItemsEl.querySelectorAll("[data-inc]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-inc");
+      const it = cart.find(x => x.id === id);
+      if (it) it.qty += 1;
+      renderCart();
+      saveCart();
+    });
+  });
+  cartItemsEl.querySelectorAll("[data-dec]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-dec");
+      const it = cart.find(x => x.id === id);
+      if (it) {
+        it.qty = Math.max(1, it.qty - 1);
+      }
+      renderCart();
+      saveCart();
+    });
+  });
+  cartItemsEl.querySelectorAll("[data-del]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-del");
+      cart = cart.filter(x => x.id !== id);
+      renderCart();
+      saveCart();
+    });
   });
 
-  subtotalEl.textContent = formatBDT(subtotal);
-  countEl.textContent = cart.length;
-
   saveCart();
-  lucide.createIcons(); // refresh icons
+  lucide.createIcons();
 }
 
 function addToCart(product) {
   const existing = cart.find(p => p.id === product.id);
   if (existing) {
-    existing.qty++;
+    existing.qty += 1;
   } else {
     cart.push({ ...product, qty: 1 });
   }
   renderCart();
-}
-
-function removeFromCart(id) {
-  cart = cart.filter(item => item.id !== id);
-  renderCart();
+  saveCart();
 }
 
 function openCart() {
@@ -337,12 +364,7 @@ function closeCart() {
 }
 
 // --- Wiring -----------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  // Search
-  searchEl.addEventListener("input", (e) => {
-    query = e.target.value || "";
-  });
-
+document.addEventListener("DOMContentLoaded", async () => {
   // District
   renderDistricts();
   districtEl.addEventListener("change", (e) => {
@@ -352,19 +374,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // Pills
   renderPills();
 
-  // Load products dynamically
-  loadProducts();
+  // Search
+  searchEl.addEventListener("input", (e) => {
+    query = e.target.value || "";
+    renderProducts();
+  });
 
-  // Hero estimator
-  const heroMount = document.getElementById("deliveryEstimatorMount");
-  renderEstimator(heroMount, district, 1000);
-
-  // Details & cart controls
+  // Buttons
   closeDetailsBtn.addEventListener("click", closeDetails);
   openCartBtn.addEventListener("click", openCart);
   closeCartBtn.addEventListener("click", closeCart);
 
-  // Quotation form (demo)
+  // Estimator (hero)
+  const heroMount = document.getElementById("deliveryEstimatorMount");
+  renderEstimator(heroMount, district, 1000);
+
+  // Quote form (demo)
   const quoteForm = document.getElementById("quoteForm");
   quoteForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -372,8 +397,9 @@ document.addEventListener("DOMContentLoaded", () => {
     quoteForm.reset();
   });
 
-  // ✅ Initialize
-renderProducts();
-renderCart();
+  // Load products then render
+  await loadProducts();
+  renderProducts();
+  renderCart();
   lucide.createIcons();
 });
