@@ -1,9 +1,0 @@
-/* Minimal extras (Tailwind does most styling) */
-.badge {
-  border-radius: 9999px;
-  padding: 4px 10px;
-  font-size: 12px;
-}
-.badge-emerald { background: #059669; color: #fff; }
-.sheet-open  { display: block !important; }
-.hidden      { display: none !important; }
