@@ -89,14 +89,37 @@ function cartItemCount() {
 // --- Load products ----------------------------------------------------------
 async function loadProducts() {
   try {
-    const res = await fetch("data/products.json", { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    PRODUCTS = await res.json();
-  } catch (err) {
-    console.error("Failed to load products:", err);
-    PRODUCTS = []; // keep safe
+    const response = await fetch("data/products.json");
+    const products = await response.json();
+
+    const productContainer = document.getElementById("product-list");
+    productContainer.innerHTML = "";
+
+    products.forEach(product => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+
+      card.innerHTML = `
+        <img src="${product.image}" alt="${product.name}">
+        <h3>${product.name}</h3>
+        <p><strong>Brand:</strong> ${product.brand}</p>
+        <p><strong>Origin:</strong> ${product.origin}</p>
+        <p><strong>Quality:</strong> ${product.quality}</p>
+        <p><strong>Unit:</strong> ${product.unit}</p>
+        <p><strong>Price:</strong> ৳${product.price.toLocaleString()}</p>
+        <p><strong>Delivery Time:</strong> ${product.leadTimeDays} days</p>
+        <p><strong>Rating:</strong> ⭐ ${product.rating}</p>
+      `;
+
+      productContainer.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Error loading products:", error);
   }
 }
+
+document.addEventListener("DOMContentLoaded", loadProducts);
+
 
 // --- Rendering --------------------------------------------------------------
 function renderDistricts() {
