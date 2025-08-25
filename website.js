@@ -58,10 +58,20 @@ function productCard(p) {
 }
 
 // Render products by category & search
+async function loadProducts() {
+  try {
+    const res = await fetch("data/products.json");
+    const products = await res.json();
+    renderProducts(products);
+  } catch (err) {
+    console.error("Error loading products:", err);
+  }
+}
 
 function renderProducts(products) {
   const grid = document.getElementById("productsGrid");
   grid.innerHTML = "";
+
   products.forEach((p) => {
     grid.innerHTML += `
       <div class="border rounded-lg p-4 shadow bg-white">
@@ -77,6 +87,8 @@ function renderProducts(products) {
     `;
   });
 }
+
+document.addEventListener("DOMContentLoaded", loadProducts);
 
 function renderProducts(category = "all", query = "") {
   let filtered = productsData;
