@@ -58,6 +58,26 @@ function productCard(p) {
 }
 
 // Render products by category & search
+
+function renderProducts(products) {
+  const grid = document.getElementById("productsGrid");
+  grid.innerHTML = "";
+  products.forEach((p) => {
+    grid.innerHTML += `
+      <div class="border rounded-lg p-4 shadow bg-white">
+        <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover mb-3 rounded">
+        <h3 class="font-bold text-lg">${p.name}</h3>
+        <p class="text-sm text-gray-600">${p.brand} - ${p.quality}</p>
+        <p class="text-sm">Unit: ${p.unit}</p>
+        <p class="font-semibold mt-2">৳${p.price.toLocaleString()}</p>
+        <button onclick="addToCart('${p.id}')" class="mt-3 bg-blue-600 text-white px-3 py-1 rounded">
+          Add to Cart
+        </button>
+      </div>
+    `;
+  });
+}
+
 function renderProducts(category = "all", query = "") {
   let filtered = productsData;
 
