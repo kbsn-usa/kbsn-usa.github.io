@@ -60,7 +60,7 @@ function productCard(p) {
 // Render products by category & search
 async function loadProducts() {
   try {
-    const res = await fetch("data/products.json");
+    const res = await fetch("/data/products.json");
     const products = await res.json();
     renderProducts(products);
   } catch (err) {
