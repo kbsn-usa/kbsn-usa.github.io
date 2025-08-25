@@ -15,7 +15,16 @@ const DISTRICTS = [
   "Rajshahi","Khulna","Sylhet","Barishal","Rangpur",
 ];
 
-const MOCK_PRODUCTS = ;
+let PRODUCTS = []; // products will load here dynamically
+
+async function loadProducts() {
+  try {
+    const res = await fetch("data/products.json");
+    PRODUCTS = await res.json();
+  } catch (err) {
+    console.error("Failed to load products:", err);
+  }
+}
 
 function formatBDT(n) {
   return new Intl.NumberFormat("en-BD", {
@@ -46,7 +55,6 @@ function leadTimeLabel(days) {
 let query = "";
 let category = null; // key or null
 let district = "Dhaka";
-let cart = [];
 let selectedProduct = null;
 
 // --- DOM refs ---------------------------------------------------------------
@@ -98,7 +106,6 @@ function renderPills() {
     btn.addEventListener("click", () => {
       const key = btn.getAttribute("data-cat");
       category = key ? key : null;
-      renderProducts();
       renderPills(); // refresh active styles
     });
   });
@@ -164,26 +171,51 @@ function productCard(p) {
   </div>`;
 }
 
+// ✅ Cart (persistent with localStorage)
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+// ✅ Utility Functions
+function saveCart() {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+// ✅ Render Products
 function renderProducts() {
-  const list = MOCK_PRODUCTS.filter(matches);
-  gridEl.innerHTML = list.map(productCard).join("");
+  const grid = document.getElementById("productsGrid");
+  grid.innerHTML = "";
+
+  PRODUCTS.filter(matches).forEach(product => {
+    const card = document.createElement("div");
+    card.className = "bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer";
+    card.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" 
+        loading="lazy" class="w-full h-40 object-cover">
+      <div class="p-4 space-y-2">
+        <h3 class="font-semibold text-lg">${product.name}</h3>
+        <p class="text-black font-bold">${formatBDT(product.price)} <span class="text-sm font-normal text-neutral-500">/${product.unit}</span></p>
+        <button class="bg-black text-white px-4 py-2 rounded-lg text-sm w-full hover:bg-neutral-800">Add to Cart</button>
+      </div>
+    `;
+    card.querySelector("button").addEventListener("click", () => addToCart(product));
+    card.querySelector("img").addEventListener("click", () => openDetails(product));
+    grid.appendChild(card);
+  });
+}
 
   // hook buttons
   gridEl.querySelectorAll("[data-add]").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-add");
-      const p = MOCK_PRODUCTS.find(x => x.id === id);
-      cart.push(p);
-      cartCountEl.textContent = String(cart.length);
+      const p = PRODUCTS.find(x => x.id === id);
+      addToCart(p);
       openCart();
-      renderCart();
       lucide.createIcons();
     });
   });
   gridEl.querySelectorAll("[data-open-details]").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-open-details");
-      const p = MOCK_PRODUCTS.find(x => x.id === id);
+      const p = PRODUCTS.find(x => x.id === id);
       openDetails(p);
       lucide.createIcons();
     });
@@ -227,50 +259,72 @@ function renderEstimator(mountEl, defaultDistrict = "Dhaka", defaultWeight = 100
   update();
 }
 
-function openDetails(p) {
-  selectedProduct = p;
-  detailsTitle.textContent = p.name;
-  detailsImage.style.backgroundImage = `url('${p.image}')`;
-  detailsPrice.textContent = formatBDT(p.price);
-  detailsUnit.textContent = p.unit;
-  detailsLead.textContent = `Lead time: ${leadTimeLabel(p.leadTimeDays)}`;
-  detailsOrigin.textContent = `Origin: ${p.origin}`;
-  detailsQuality.innerHTML = `
-    <span class="badge badge-emerald">${p.quality}</span>
-    <span class="text-neutral-600">Brand: ${p.brand}</span>
-  `;
-  renderEstimator(detailsEstimator, district, 1000);
-  detailsSheet.classList.remove("hidden");
-  detailsSheet.classList.add("sheet-open");
+// ✅ Product Details Modal
+function openDetails(product) {
+  const sheet = document.getElementById("detailsSheet");
+  document.getElementById("detailsImage").style.backgroundImage = `url(${product.image})`;
+  document.getElementById("detailsTitle").textContent = product.name;
+  document.getElementById("detailsPrice").textContent = formatBDT(product.price);
+  document.getElementById("detailsUnit").textContent = `Unit: ${product.unit}`;
+  document.getElementById("detailsLead").textContent = `Lead Time: ${leadTimeLabel(product.leadTimeDays)}`;
+  document.getElementById("detailsOrigin").textContent = `Origin: ${product.origin}`;
+  document.getElementById("detailsQuality").textContent = `Quality: ${product.quality}`;
+
+  sheet.classList.remove("hidden");
+  sheet.focus();
 }
 
 function closeDetails() {
-  detailsSheet.classList.add("hidden");
-  detailsSheet.classList.remove("sheet-open");
-  selectedProduct = null;
+  document.getElementById("detailsSheet").classList.add("hidden");
 }
 
+// ✅ Cart Handling
 function renderCart() {
-  if (!cart.length) {
-    cartItemsEl.innerHTML = `<div class="text-sm text-neutral-500">Cart is empty.</div>`;
-    cartSubtotalEl.textContent = formatBDT(0);
-    return;
-  }
-  cartItemsEl.innerHTML = cart.map(p => `
-    <div class="border rounded-xl">
-      <div class="p-3 flex items-center gap-3">
-        <div class="h-14 w-14 rounded bg-cover bg-center"
-             style="background-image:url('${p.image}')"></div>
-        <div class="flex-1">
-          <div class="text-sm font-medium line-clamp-1">${p.name}</div>
-          <div class="text-xs text-neutral-500">${p.unit}</div>
-        </div>
-        <div class="text-sm font-semibold">${formatBDT(p.price)}</div>
+  const itemsContainer = document.getElementById("cartItems");
+  const subtotalEl = document.getElementById("cartSubtotal");
+  const countEl = document.getElementById("cartCount");
+
+  itemsContainer.innerHTML = "";
+
+  let subtotal = 0;
+
+  cart.forEach(item => {
+    subtotal += item.price * item.qty;
+    const itemEl = document.createElement("div");
+    itemEl.className = "flex justify-between items-center border-b pb-2";
+    itemEl.innerHTML = `
+      <div>
+        <p class="font-medium">${item.name}</p>
+        <p class="text-sm text-neutral-500">${item.qty} × ${formatBDT(item.price)}</p>
       </div>
-    </div>
-  `).join("");
-  const subtotal = cart.reduce((sum, p) => sum + p.price, 0);
-  cartSubtotalEl.textContent = formatBDT(subtotal);
+      <button aria-label="Remove ${item.name}">
+        <i data-lucide="trash-2" class="h-5 w-5 text-red-500"></i>
+      </button>
+    `;
+    itemEl.querySelector("button").addEventListener("click", () => removeFromCart(item.id));
+    itemsContainer.appendChild(itemEl);
+  });
+
+  subtotalEl.textContent = formatBDT(subtotal);
+  countEl.textContent = cart.length;
+
+  saveCart();
+  lucide.createIcons(); // refresh icons
+}
+
+function addToCart(product) {
+  const existing = cart.find(p => p.id === product.id);
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ ...product, qty: 1 });
+  }
+  renderCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(item => item.id !== id);
+  renderCart();
 }
 
 function openCart() {
@@ -287,7 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Search
   searchEl.addEventListener("input", (e) => {
     query = e.target.value || "";
-    renderProducts();
   });
 
   // District
@@ -296,9 +349,11 @@ document.addEventListener("DOMContentLoaded", () => {
     district = e.target.value;
   });
 
-  // Pills + products
+  // Pills
   renderPills();
-  renderProducts();
+
+  // Load products dynamically
+  loadProducts();
 
   // Hero estimator
   const heroMount = document.getElementById("deliveryEstimatorMount");
@@ -317,5 +372,8 @@ document.addEventListener("DOMContentLoaded", () => {
     quoteForm.reset();
   });
 
+  // ✅ Initialize
+renderProducts();
+renderCart();
   lucide.createIcons();
 });
