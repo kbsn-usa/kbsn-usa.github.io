@@ -186,35 +186,6 @@ function productCard(p) {
   `;
 }
 
-function renderProducts() {
-  const list = PRODUCTS.filter(matches);
-  gridEl.innerHTML = list.map(productCard).join("");
-
-  // Bind dynamic buttons
-  gridEl.querySelectorAll("[data-add]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-add");
-      const p = PRODUCTS.find(x => x.id === id);
-      if (p) {
-        addToCart(p);
-        openCart();
-      }
-      lucide.createIcons();
-    });
-  });
-
-  gridEl.querySelectorAll("[data-open-details]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = btn.getAttribute("data-open-details");
-      const p = PRODUCTS.find(x => x.id === id);
-      if (p) openDetails(p);
-      lucide.createIcons();
-    });
-  });
-
-  lucide.createIcons();
-}
-
 function renderEstimator(mountEl, defaultDistrict = "Dhaka", defaultWeight = 1000) {
   mountEl.innerHTML = `
     <div class="border rounded-2xl bg-white">
@@ -364,6 +335,32 @@ function closeCart() {
 
 // --- Wiring -----------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const res = await fetch("data/products.json");
+    const products = await res.json();
+    renderProducts(products);
+  } catch (error) {
+    console.error("Error loading products:", error);
+  }
+});
+
+function renderProducts(products) {
+  const container = document.getElementById("products-container"); // your grid element
+  container.innerHTML = "";
+
+  products.forEach((p) => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <img src="${p.image}" alt="${p.name}">
+      <h3>${p.name}</h3>
+      <p>${p.brand} — ${p.unit}</p>
+      <p>৳${p.price}</p>
+    `;
+    container.appendChild(card);
+  });
+}
+
   // District
   renderDistricts();
   districtEl.addEventListener("change", (e) => {
