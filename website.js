@@ -86,39 +86,15 @@ function cartItemCount() {
   return cart.reduce((sum, it) => sum + (it.qty || 0), 0);
 }
 
-// --- Load products ----------------------------------------------------------
+// Load products into PRODUCTS array
 async function loadProducts() {
   try {
     const response = await fetch("data/products.json");
-    const products = await response.json();
-
-    const productContainer = document.getElementById("product-list");
-    productContainer.innerHTML = "";
-
-    products.forEach(product => {
-      const card = document.createElement("div");
-      card.className = "product-card";
-
-      card.innerHTML = `
-        <img src="${product.image}" alt="${product.name}">
-        <h3>${product.name}</h3>
-        <p><strong>Brand:</strong> ${product.brand}</p>
-        <p><strong>Origin:</strong> ${product.origin}</p>
-        <p><strong>Quality:</strong> ${product.quality}</p>
-        <p><strong>Unit:</strong> ${product.unit}</p>
-        <p><strong>Price:</strong> ৳${product.price.toLocaleString()}</p>
-        <p><strong>Delivery Time:</strong> ${product.leadTimeDays} days</p>
-        <p><strong>Rating:</strong> ⭐ ${product.rating}</p>
-      `;
-
-      productContainer.appendChild(card);
-    });
+    PRODUCTS = await response.json();
   } catch (error) {
     console.error("Error loading products:", error);
   }
 }
-
-document.addEventListener("DOMContentLoaded", loadProducts);
 
 
 // --- Rendering --------------------------------------------------------------
