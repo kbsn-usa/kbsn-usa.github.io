@@ -1,184 +1,187 @@
-<!DOCTYPE html>  
-<html lang="en">  
-<head>  
-  <meta charset="utf-8" />  
-  <meta name="viewport" content="width=device-width, initial-scale=1" />  
-  <title>BPC – Building Procurement Construction</title>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BPC – Building Procurement Construction</title>
 
-  <!-- SEO Meta -->  
-  <meta name="description" content="BPC (Building Procurement Construction) is Bangladesh’s first professional marketplace for construction materials. Buy cement, bricks, rods, tiles, cables & sanitary items with transparent prices, verified suppliers & fast delivery." />  
-  <meta name="keywords" content="construction materials Bangladesh, buy cement online Bangladesh, building procurement Dhaka, bricks rods cement tiles sanitary, BPC marketplace, suppliers in Bangladesh, building materials Dhaka, construction marketplace BD" />  
-  <meta name="author" content="BPC" />  
+  <!-- SEO Meta -->
+  <meta name="description" content="BPC (Building Procurement Construction) is Bangladesh’s first professional marketplace for construction materials. Buy cement, bricks, rods, tiles, cables & sanitary items with transparent prices, verified suppliers & fast delivery." />
+  <meta name="keywords" content="construction materials Bangladesh, buy cement online Bangladesh, building procurement Dhaka, bricks rods cement tiles sanitary, BPC marketplace, suppliers in Bangladesh, building materials Dhaka, construction marketplace BD" />
+  <meta name="author" content="BPC" />
 
-  <!-- Open Graph -->  
-  <meta property="og:title" content="BPC – Building Procurement Construction" />  
-  <meta property="og:description" content="Bangladesh’s first construction materials marketplace. Cement, bricks, rods, tiles, cables & more with transparent prices and fast delivery." />  
-  <meta property="og:url" content="https://bpcproc.com/" />  
-  <meta property="og:type" content="website" />  
-  <meta property="og:image" content="https://bpcproc.com/assets/logo.webp" />  
+  <!-- Open Graph -->
+  <meta property="og:title" content="BPC – Building Procurement Construction" />
+  <meta property="og:description" content="Bangladesh’s first construction materials marketplace. Cement, bricks, rods, tiles, cables & more with transparent prices and fast delivery." />
+  <meta property="og:url" content="https://bpcproc.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://bpcproc.com/assets/logo.webp" />
 
-  <!-- Favicon -->  
-  <link rel="icon" href="assets/logo.webp" />  
+  <!-- Favicon -->
+  <link rel="icon" href="assets/logo.webp" />
 
-  <!-- Tailwind (CDN) -->  
-  <script src="https://cdn.tailwindcss.com"></script>  
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Lucide icons -->  
-  <script src="https://unpkg.com/lucide@latest"></script>  
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Styles -->  
-  <link rel="stylesheet" href="style.css" />  
-</head>  
-<body class="bg-neutral-50 text-neutral-900">  
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-neutral-50 text-neutral-900">
 
-  <!-- Header -->  
-  <header class="sticky top-0 z-40 w-full backdrop-blur bg-white/70 border-b">  
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">  
-      <a href="/" class="flex items-center gap-2">  
-        <img src="assets/logo.webp" class="h-8 w-8" alt="BPC logo" />  
-        <span class="font-bold text-lg md:text-xl">BPC (Building Procurement Construction)</span>  
-      </a>  
-      <div class="flex-1"></div>  
-      <button id="openFiltersBtn" class="border rounded-lg px-3 py-2 text-sm flex items-center gap-2">  
-        <i data-lucide="filter" class="w-4 h-4"></i>  
-        Filters  
-      </button>  
-      <a href="https://wa.me/8801714736623" target="_blank" rel="noreferrer">  
-        <button class="ml-2 bg-black text-white rounded-lg px-3 py-2 text-sm flex items-center gap-2">  
-          <i data-lucide="message-square" class="w-4 h-4"></i>  
-          Talk to Manager  
-        </button>  
-      </a>  
-    </div>  
-  </header>  
+  <!-- Header -->
+  <header class="sticky top-0 z-40 w-full backdrop-blur bg-white/70 border-b">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+      <a href="/" class="flex items-center gap-2">
+        <img src="assets/logo.webp" class="h-8 w-8" alt="BPC logo" />
+        <span class="font-bold text-lg md:text-xl">BPC (Building Procurement Construction)</span>
+      </a>
+      <div class="flex-1"></div>
+      <button id="openFiltersBtn" class="border rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+        <i data-lucide="filter" class="w-4 h-4"></i>
+        Filters
+      </button>
+      <a href="https://wa.me/8801714736623" target="_blank" rel="noreferrer">
+        <button class="ml-2 bg-black text-white rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+          Talk to Manager
+        </button>
+      </a>
+    </div>
+  </header>
 
-  <!-- Main -->  
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">  
+  <!-- Main -->
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- Hero -->  
-    <section class="rounded-3xl bg-gradient-to-br from-neutral-900 to-neutral-700 text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">  
-      <div class="flex-1">  
-        <h1 class="text-3xl md:text-5xl font-bold leading-tight">All Building Materials in One Place</h1>  
-        <p class="mt-3 text-neutral-200 max-w-xl">  
-          Instantly find bricks, rod, cement, tiles, sanitary & cables.  
-          Transparent prices, delivery cost & time, quality and supplier info.  
-          Talk directly to a manager and confirm in minutes.  
-        </p>  
-        <div class="mt-5 flex items-center gap-2 text-xs">  
-          <span class="bg-emerald-600 rounded-full px-3 py-1">Reasonable Pricing</span>  
-          <span class="bg-emerald-600 rounded-full px-3 py-1">Verified Suppliers</span>  
-          <span class="bg-emerald-600 rounded-full px-3 py-1">1–3 Day Delivery</span>  
-        </div>  
-      </div>  
-      <div class="flex-1 w-full">  
-        <!-- Delivery Estimator -->  
-        <div id="deliveryEstimatorMount"></div>  
-      </div>  
-    </section>  
+    <!-- Hero -->
+    <section class="rounded-3xl bg-gradient-to-br from-neutral-900 to-neutral-700 text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+      <div class="flex-1">
+        <h1 class="text-3xl md:text-5xl font-bold leading-tight">All Building Materials in One Place</h1>
+        <p class="mt-3 text-neutral-200 max-w-xl">
+          Instantly find bricks, rod, cement, tiles, sanitary & cables.
+          Transparent prices, delivery cost & time, quality and supplier info.
+          Talk directly to a manager and confirm in minutes.
+        </p>
+        <div class="mt-5 flex items-center gap-2 text-xs">
+          <span class="bg-emerald-600 rounded-full px-3 py-1">Reasonable Pricing</span>
+          <span class="bg-emerald-600 rounded-full px-3 py-1">Verified Suppliers</span>
+          <span class="bg-emerald-600 rounded-full px-3 py-1">1–3 Day Delivery</span>
+        </div>
+      </div>
+      <div class="flex-1 w-full">
+        <!-- Delivery Estimator -->
+        <div id="deliveryEstimatorMount"></div>
+      </div>
+    </section>
 
-    <!-- Search + Delivery + Cart -->  
-    <section class="bg-white rounded-2xl border">  
-      <div class="p-4 md:p-6 space-y-4">  
-        <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">  
-          <!-- Search -->  
-          <div class="relative w-full flex-1">  
-            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"></i>  
-            <input id="search-input" class="pl-9 h-11 w-full border rounded-lg px-3"  
-              placeholder="Search bricks, rod, cement, tiles, sanitary, cables..." />  
-          </div>  
-          <!-- Deliver To -->  
-          <div class="md:w-72">  
-            <label class="text-xs text-neutral-600 block mb-1">Deliver to</label>  
-            <select id="district-select" class="h-11 w-full border rounded-lg px-3"></select>  
-          </div>  
-          <!-- Cart -->  
-          <button id="openCartBtn" class="bg-black text-white rounded-lg px-3 py-2 h-11 flex items-center gap-2">  
-            <i data-lucide="shopping-cart" class="h-4 w-4"></i>  
-            <span>Cart (<span id="cart-count">0</span>)</span>  
-          </button>  
-        </div>  
-        <!-- Category Pills -->  
-        <div id="category-pills" class="flex flex-wrap gap-2"></div>  
-      </div>  
-    </section>  
+    <!-- Search + Delivery + Cart -->
+    <section class="bg-white rounded-2xl border">
+      <div class="p-4 md:p-6 space-y-4">
+        <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+          <!-- Search -->
+          <div class="relative w-full flex-1">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"></i>
+            <input id="searchInput" class="pl-9 h-11 w-full border rounded-lg px-3"
+              placeholder="Search bricks, rod, cement, tiles, sanitary, cables..." />
+          </div>
+          <!-- Deliver To -->
+          <div class="md:w-72">
+            <label class="text-xs text-neutral-600 block mb-1">Deliver to</label>
+            <select id="districtSelect" class="h-11 w-full border rounded-lg px-3"></select>
+          </div>
+          <!-- Cart -->
+          <button id="openCartBtn" class="bg-black text-white rounded-lg px-3 py-2 h-11 flex items-center gap-2">
+            <i data-lucide="shopping-cart" class="h-4 w-4"></i>
+            <span>Cart (<span id="cartCount">0</span>)</span>
+          </button>
+        </div>
+        <!-- Category Pills -->
+        <div id="categoryPills" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
 
-    <!-- Products -->  
-    <section>  
-      <h2 class="text-xl font-semibold mb-3">Available Products</h2>  
-      <div id="products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>  
-    </section>  
+    <!-- Products -->
+    <section>
+      <h2 class="text-xl font-semibold mb-3">Available Products</h2>
+      <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </section>
 
-    <!-- Custom Quotation -->  
-    <section class="border-dashed border rounded-2xl bg-white">  
-      <div class="p-5 grid md:grid-cols-2 gap-5 items-center">  
-        <div>  
-          <h3 class="text-xl font-semibold">Need a custom quotation?</h3>  
-          <p class="text-sm text-neutral-600 mt-1">  
-            For large or industrial orders, submit your BOQ or requirements.  
-            Our team will verify supplier availability and lock reasonable pricing.  
-          </p>  
-        </div>  
-        <form id="quoteForm" class="grid grid-cols-2 gap-3">  
-          <input placeholder="Your name" class="h-11 border rounded-lg px-3" required />  
-          <input placeholder="Phone Number" class="h-11 border rounded-lg px-3" required />  
-          <input placeholder="Company (optional)" class="h-11 col-span-2 border rounded-lg px-3" />  
-          <textarea placeholder="List items, quantities, specs (or paste BOQ link)" class="col-span-2 border rounded-lg px-3 py-2 h-28"></textarea>  
-          <button class="col-span-2 bg-black text-white rounded-lg px-3 py-2 h-11">Request Quotation</button>  
-          <div class="text-[11px] text-neutral-500 col-span-2">  
-            Payments: bKash • Nagad • Bank • COD | GST/VAT invoices available.  
-          </div>  
-        </form>  
-      </div>  
-    </section>  
-  </main>  
+    <!-- Custom Quotation -->
+    <section class="border-dashed border rounded-2xl bg-white">
+      <div class="p-5 grid md:grid-cols-2 gap-5 items-center">
+        <div>
+          <h3 class="text-xl font-semibold">Need a custom quotation?</h3>
+          <p class="text-sm text-neutral-600 mt-1">
+            For large or industrial orders, submit your BOQ or requirements.
+            Our team will verify supplier availability and lock reasonable pricing.
+          </p>
+        </div>
+        <form id="quoteForm" class="grid grid-cols-2 gap-3">
+          <input placeholder="Your name" class="h-11 border rounded-lg px-3" required />
+          <input placeholder="Phone Number" class="h-11 border rounded-lg px-3" required />
+          <input placeholder="Company (optional)" class="h-11 col-span-2 border rounded-lg px-3" />
+          <textarea placeholder="List items, quantities, specs (or paste BOQ link)" class="col-span-2 border rounded-lg px-3 py-2 h-28"></textarea>
+          <button class="col-span-2 bg-black text-white rounded-lg px-3 py-2 h-11">Request Quotation</button>
+          <div class="text-[11px] text-neutral-500 col-span-2">
+            Payments: bKash • Nagad • Bank • COD | GST/VAT invoices available.
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
 
-  <!-- Product Details Sheet -->  
-  <div id="detailsSheet" class="fixed top-0 right-0 h-full w-full max-w-xl z-50 bg-white shadow-2xl p-6 overflow-y-auto hidden"></div>  
+  <!-- Product Details Sheet -->
+  <div id="detailsSheet" class="fixed top-0 right-0 h-full w-full max-w-xl z-50 bg-white shadow-2xl p-6 overflow-y-auto hidden"></div>
 
-  <!-- Cart Drawer -->  
-  <div id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-md z-50 bg-white p-6 shadow-2xl hidden"></div>  
+  <!-- Cart Drawer -->
+  <div id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-md z-50 bg-white p-6 shadow-2xl hidden">
+    <div id="cart-items"></div>
+    <div id="cart-subtotal" class="mt-4"></div>
+  </div>
 
-  <!-- Footer -->  
-  <footer class="border-t bg-white">  
-    <div class="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-3 gap-6">  
-      <div>  
-        <div class="flex items-center gap-2">  
-          <img src="assets/logo.webp" class="h-7 w-7" alt="BPC logo" />  
-          <span class="font-bold text-xl">BPC</span>  
-        </div>  
-        <p class="text-sm text-neutral-600 mt-2">  
-          A professional marketplace for construction materials in Bangladesh.  
-          Transparent prices, fast delivery, verified suppliers.  
-        </p>  
-      </div>  
-      <div>  
-        <h4 class="font-semibold mb-2">Quick Links</h4>  
-        <ul class="text-sm text-neutral-600 space-y-1">  
-          <li><a href="pages/about.html">About Us</a></li>  
-          <li><a href="pages/services.html">Supplier Onboarding</a></li>  
-          <li><a href="pages/services.html">Bulk Orders</a></li>  
-          <li><a href="pages/contact.html">Refund & Returns</a></li>  
-        </ul>  
-      </div>  
-      <div>  
-        <h4 class="font-semibold mb-2">Contact</h4>  
-        <p class="text-sm text-neutral-600">  
-          House 11, Road 96, Gulshan-2, Dhaka 1212<br />  
-          Hotline: 01714-736623<br />  
-          Email: bpc.proc@gmail.com  
-        </p>  
-      </div>  
-    </div>  
-    <div class="text-center text-xs text-neutral-500 py-3">  
-      © <span id="year"></span> BPC — All rights reserved.  
-    </div>  
-  </footer>  
+  <!-- Footer -->
+  <footer class="border-t bg-white">
+    <div class="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-3 gap-6">
+      <div>
+        <div class="flex items-center gap-2">
+          <img src="assets/logo.webp" class="h-7 w-7" alt="BPC logo" />
+          <span class="font-bold text-xl">BPC</span>
+        </div>
+        <p class="text-sm text-neutral-600 mt-2">
+          A professional marketplace for construction materials in Bangladesh.
+          Transparent prices, fast delivery, verified suppliers.
+        </p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Quick Links</h4>
+        <ul class="text-sm text-neutral-600 space-y-1">
+          <li><a href="pages/about.html">About Us</a></li>
+          <li><a href="pages/services.html">Supplier Onboarding</a></li>
+          <li><a href="pages/services.html">Bulk Orders</a></li>
+          <li><a href="pages/contact.html">Refund & Returns</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-2">Contact</h4>
+        <p class="text-sm text-neutral-600">
+          House 11, Road 96, Gulshan-2, Dhaka 1212<br />
+          Hotline: 01714-736623<br />
+          Email: bpc.proc@gmail.com
+        </p>
+      </div>
+    </div>
+    <div class="text-center text-xs text-neutral-500 py-3">
+      © <span id="year"></span> BPC — All rights reserved.
+    </div>
+  </footer>
 
-  <!-- Scripts -->  
-  <script src="website.js"></script>  
-  <script>  
-    lucide.createIcons();  
-    document.getElementById("year").textContent = new Date().getFullYear();  
-  </script>  
-</body>  
+  <!-- Scripts -->
+  <script src="website.js"></script>
+  <script>
+    lucide.createIcons();
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
 </html>
