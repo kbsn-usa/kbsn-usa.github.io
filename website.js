@@ -16,19 +16,18 @@ const allDistricts = [
 ];
 
 // ================== DOM ELEMENTS ==================
-const productGrid = document.getElementById("product-grid");
+const productGrid = document.getElementById("productsGrid");
 const cartSidebar = document.getElementById("cart-sidebar");
 const cartItemsEl = document.getElementById("cart-items");
 const cartSubtotalEl = document.getElementById("cart-subtotal");
 const cartDeliveryEl = document.getElementById("cart-delivery");
 const cartTotalEl = document.getElementById("cart-total");
-const cartCountEl = document.getElementById("cart-count");
-const districtSelectEl = document.getElementById("district-select");
-const cartBtn = document.getElementById("cart-btn");
+const cartCountEl = document.getElementById("cartCount");
+const districtSelectEl = document.getElementById("districtSelect");
+const cartBtn = document.getElementById("openCartBtn");
 const closeCartBtn = document.getElementById("close-cart");
-const productModal = document.getElementById("product-modal");
-const modalContent = document.getElementById("modal-content");
-const closeModalBtn = document.getElementById("close-modal");
+const productModal = document.getElementById("detailsSheet");
+const modalContent = document.getElementById("detailsSheet");
 
 // ================== HELPERS ==================
 function saveCart() {
