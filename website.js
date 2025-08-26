@@ -242,10 +242,25 @@ function renderCart() {
 
   // Subtotal
   const subtotal = CART.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
+  // ===== Delivery Cost Calculation =====
+let totalWeight = CART.reduce((sum, it) => sum + (it.weight || 0) * (it.qty || 0), 0);
 
-  // Delivery rules
-  const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(DISTRICT);
-  const deliveryCost = CART.length > 0 ? (insideDhaka ? 150 : 200) : 0;
+// Delivery rate per kg
+const rateInsideDhaka = 2.1;
+const rateOutsideDhaka = 3.0; // example, adjust as needed
+
+const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(district);
+
+// Base minimums
+const minInside = 150;
+const minOutside = 200;
+
+let deliveryCost = 0;
+if (insideDhaka) {
+  deliveryCost = Math.max(minInside, totalWeight * rateInsideDhaka);
+} else {
+  deliveryCost = Math.max(minOutside, totalWeight * rateOutsideDhaka);
+}
   const total = subtotal + deliveryCost;
 
   cartDrawerEl.innerHTML = `
