@@ -226,31 +226,25 @@ if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
 if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
-// ==== QUOTATION FORM ====
-const quotationForm = document.getElementById("quotationForm");
-
-quotationForm.addEventListener("submit", function (e) {
+// ==== QUOTATION FORM ===
+document.getElementById("quotationForm").addEventListener("submit", function(e) {
   e.preventDefault();
 
-  const name = document.getElementById("q-name").value;
-  const phone = document.getElementById("q-phone").value;
-  const company = document.getElementById("q-company").value;
-  const message = document.getElementById("q-message").value;
+  const templateParams = {
+    name: document.getElementById("qName").value,
+    phone: document.getElementById("qPhone").value,
+    company: document.getElementById("qCompany").value,
+    message: document.getElementById("qMessage").value
+  };
 
-  emailjs.send("service_bpcproc_2025", "template_bkphebd", {
-    from_name: name,
-    phone_number: phone,
-    company: company,
-    message: message,
-  }, "fpDzznXzakdQE1aQh")
-  .then(() => {
-    alert("Your quotation request has been sent ✅");
-    quotationForm.reset();
-  })
-  .catch(err => {
-    console.error("Email send failed:", err);
-    alert("Something went wrong, please try again.");
-  });
+  emailjs.send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
+    .then(function(response) {
+      alert("Quotation request sent successfully!");
+      document.getElementById("quotationForm").reset();
+    }, function(error) {
+      alert("Failed to send request. Please try again.");
+      console.error(error);
+    });
 });
 // ================== DISTRICT ==================
 function renderDistricts() {
