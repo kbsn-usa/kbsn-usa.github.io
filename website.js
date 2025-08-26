@@ -3,13 +3,17 @@ let products = [];
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
 let DISTRICT = localStorage.getItem("bpc-DISTRICT") || "Dhaka";
 
-// Elements
-const productListEl = document.getElementById("productList");
-const cartDrawerEl = document.getElementById("cartDrawer");
+// ==============DOM Elements=================
+const openCartBtnEl = document.getElementById("open-cart");
+const closeCartBtnEl = document.getElementById("close-cart");
+const cartSidebarEl = document.getElementById("cart-sidebar");
+const cartOverlayEl = document.getElementById("cart-overlay");
+const cartItemsEl = document.getElementById("cart-items");
+const cartSubtotalEl = document.getElementById("cart-subtotal");
+const cartDeliveryEl = document.getElementById("cart-delivery");
+const cartTotalEl = document.getElementById("cart-total");
 const cartCountEl = document.getElementById("cartCount");
-const openCartBtnEl = document.getElementById("openCartBtn");
-const cartOverlayEl = document.getElementById("cartOverlay");
-const districtSelectEl = document.getElementById("districtSelect");
+const productListEl = document.getElementById("productsGrid");
 
 // Districts
 const allDistricts = [
