@@ -3,14 +3,13 @@
 // =======================
 
 // Elements
-const productsEl = document.getElementById("products");
+const productsEl = document.getElementById("productsGrid");   // FIXED
 const cartItemsEl = document.getElementById("cart-items");
 const cartSubtotalEl = document.getElementById("cart-subtotal");
-const cartCountEl = document.getElementById("cart-count");
-const categoryPillsEl = document.getElementById("category-pills");
-const searchInputEl = document.getElementById("search-input");
-const districtSelectEl = document.getElementById("district-select");
-
+const cartCountEl = document.getElementById("cartCount");     // FIXED
+const categoryPillsEl = document.getElementById("categoryPills"); // FIXED
+const searchInputEl = document.getElementById("searchInput");     // FIXED
+const districtSelectEl = document.getElementById("districtSelect"); // FIXED
 // Cart state
 let cart = JSON.parse(localStorage.getItem("bpc-cart")) || [];
 let district = localStorage.getItem("bpc-district") || "Dhaka";
