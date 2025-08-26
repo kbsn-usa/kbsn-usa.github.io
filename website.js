@@ -21,7 +21,7 @@ const DISTRICTS = [
 // ---------- State ----------
 let PRODUCTS = [];
 let FILTER = { category: "all", query: "" };
-let DISTRICT = localStorage.getItem("bpc-district") || "Dhaka";
+let DISTRICT = localStorage.getItem("bpc-DISTRICTS") || "Dhaka";
 let CART = JSON.parse(localStorage.getItem("bpc-cart") || "[]");
 
 // ---------- DOM ----------
@@ -334,11 +334,6 @@ cartSubtotalEl.innerHTML = `
 // ---------- Bootstrap ----------
 (async function init() {
   // District select in header
-
-// Populate district dropdown
-districtSelectEl.innerHTML = DISTRICTS
-  .map(d => `<option value="${d}" ${d === district ? "selected" : ""}>${d}</option>`)
-  .join("");
   
   if (districtEl) {
     districtEl.innerHTML = DISTRICTS.map((d) => `<option value="${d}">${d}</option>`).join("");
