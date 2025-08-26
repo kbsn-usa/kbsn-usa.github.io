@@ -165,46 +165,51 @@ function getDeliveryCost(totalWeight) {
   return Math.max(calc, minCost);
 }
 
+// ==== CART RENDER FIX ====
 function renderCart() {
-  if (!cartSidebarEl || !cartCountEl) return;
+  cartItemsEl.innerHTML = "";
+  if (cart.length === 0) {
+    cartItemsEl.innerHTML = `<p class="text-gray-500">Your cart is empty.</p>`;
+    cartSummaryEl.innerHTML = ""; // hide totals if empty
+    return;
+  }
 
-  const detailed = CART.map((c) => {
-    const p = products.find((pr) => pr.id === c.id);
-    return { ...p, qty: c.qty, subtotal: p.price * c.qty, weight: p.weight * c.qty };
+  let subtotal = 0;
+  let totalWeight = 0;
+
+  cart.forEach(item => {
+    subtotal += item.price * item.quantity;
+    totalWeight += item.weight * item.quantity;
+
+    cartItemsEl.innerHTML += `
+      <div class="flex justify-between items-center border-b py-2">
+        <div>
+          <p class="font-medium">${item.name}</p>
+          <p class="text-sm text-gray-500">Qty: ${item.quantity}</p>
+        </div>
+        <p>৳${item.price * item.quantity}</p>
+      </div>
+    `;
   });
 
-  const subtotal = detailed.reduce((sum, i) => sum + i.subtotal, 0);
-  const totalWeight = detailed.reduce((sum, i) => sum + i.weight, 0);
-  const deliveryCost = getDeliveryCost(totalWeight);
-  const grandTotal = subtotal + deliveryCost;
+  // Calculate delivery cost
+  let delivery = 0;
+  if (DISTRICT === "Dhaka") {
+    delivery = Math.max(150, totalWeight * 2.1);
+  } else {
+    delivery = Math.max(200, totalWeight * 3.5);
+  }
 
-  cartCountEl.textContent = CART.reduce((sum, i) => sum + i.qty, 0);
+  const total = subtotal + delivery;
 
-  cartItemsEl.innerHTML =
-    detailed.length === 0
-      ? "<p class='text-gray-500 text-center py-6'>Your cart is empty.</p>"
-      : detailed
-          .map(
-            (i) => `
-        <div class="flex justify-between items-center mb-2 border-b pb-2">
-          <div>
-            <p class="font-semibold">${i.name}</p>
-            <p class="text-sm text-gray-500">৳${i.price} × ${i.qty}</p>
-            <p class="text-xs text-gray-400">${i.weight} kg</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <input type="number" min="1" value="${i.qty}"
-              onchange="updateQty('${i.id}', this.value)"
-              class="w-12 border rounded text-center">
-            <button onclick="removeFromCart('${i.id}')" class="text-red-500">✕</button>
-          </div>
-        </div>`
-          )
-          .join("");
-
-  cartSubtotalEl.textContent = `৳${subtotal.toLocaleString()}`;
-  cartDeliveryEl.textContent = `৳${deliveryCost.toLocaleString()}`;
-  cartTotalEl.textContent = `৳${grandTotal.toLocaleString()}`;
+  cartSummaryEl.innerHTML = `
+    <div class="pt-4 border-t mt-4">
+      <p class="flex justify-between"><span>Subtotal:</span> <span>৳${subtotal}</span></p>
+      <p class="flex justify-between"><span>Delivery:</span> <span>৳${delivery}</span></p>
+      <p class="flex justify-between font-bold"><span>Total:</span> <span>৳${total}</span></p>
+      <button class="w-full mt-3 bg-green-600 text-white py-2 rounded">Checkout</button>
+    </div>
+  `;
 }
 
 // ================== CART OPEN/CLOSE ==================
@@ -221,6 +226,32 @@ if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
 if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
+// ==== QUOTATION FORM ====
+const quotationForm = document.getElementById("quotationForm");
+
+quotationForm.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const name = document.getElementById("q-name").value;
+  const phone = document.getElementById("q-phone").value;
+  const company = document.getElementById("q-company").value;
+  const message = document.getElementById("q-message").value;
+
+  emailjs.send("service_bpcproc_2025", "template_ioi1yjo", {
+    from_name: name,
+    phone_number: phone,
+    company: company,
+    message: message,
+  }, "fpDzznXzakdQE1aQh")
+  .then(() => {
+    alert("Your quotation request has been sent ✅");
+    quotationForm.reset();
+  })
+  .catch(err => {
+    console.error("Email send failed:", err);
+    alert("Something went wrong, please try again.");
+  });
+});
 // ================== DISTRICT ==================
 function renderDistricts() {
   if (!districtSelectEl) return;
