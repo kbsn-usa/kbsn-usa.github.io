@@ -132,31 +132,46 @@
   </button>
 
   <!-- CART SIDEBAR -->
-  <div id="cart-sidebar" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
-    <div class="flex justify-between items-center p-4 border-b">
-      <h2 class="text-lg font-bold">Your Cart</h2>
-      <button id="close-cart" class="text-red-500 text-xl">&times;</button>
-    </div>
-    <div id="cart-items" class="flex-1 overflow-y-auto p-4"></div>
-    <div class="border-t p-4 space-y-2">
-      <div class="flex justify-between">
-        <span>Subtotal:</span>
-        <span id="cart-subtotal">৳0</span>
-      </div>
-      <div class="flex justify-between">
-        <span>Delivery:</span>
-        <span id="cart-delivery">৳0</span>
-      </div>
-      <div class="flex justify-between font-bold">
-        <span>Total:</span>
-        <span id="cart-total">৳0</span>
-      </div>
-      <div class="text-[11px] text-neutral-500 col-span-2">
-            Payments: bKash • Nagad • Bank • COD | GST/VAT invoices available.
-       </div>
-      <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 mt-2">Checkout</button>
-    </div>
+<div id="cart-sidebar" class="fixed top-0 right-0 w-96 h-full bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col rounded-l-2xl">
+  <!-- Header -->
+  <div class="flex justify-between items-center p-4 border-b bg-neutral-50">
+    <h2 class="text-lg font-bold">Your Cart</h2>
+    <button id="close-cart" class="p-2 rounded-full hover:bg-neutral-200 transition">
+      <i data-lucide="x" class="h-5 w-5"></i>
+    </button>
   </div>
+
+  <!-- Items -->
+  <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-4">
+
+  <!-- Empty Cart State -->
+  <div id="empty-cart" class="flex-1 flex flex-col justify-center items-center text-neutral-500 hidden">
+    <i data-lucide="shopping-bag" class="h-10 w-10 mb-2"></i>
+    <p>Your cart is empty</p>
+  </div>
+
+  <!-- Checkout -->
+  <div id="cart-summary" class="border-t p-4 bg-neutral-50">
+    <div class="flex justify-between text-sm mb-1">
+      <span>Subtotal</span>
+      <span id="cart-subtotal">৳0</span>
+    </div>
+    <div class="flex justify-between text-sm mb-1">
+      <span>Delivery</span>
+      <span id="cart-delivery">৳0</span>
+    </div>
+    <div class="flex justify-between font-semibold text-base mb-3">
+      <span>Total</span>
+      <span id="cart-total">৳0</span>
+    </div>
+    <button class="w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow hover:opacity-90 transition">
+      Proceed to Checkout
+    </button>
+    <p class="text-[11px] text-neutral-500 mt-2 text-center">
+      Payments: bKash • Nagad • Bank • COD | VAT invoice available
+    </p>
+  </div>
+</div>
 
   <!-- CART OVERLAY -->
   <div id="cart-overlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
@@ -170,7 +185,7 @@
           <span class="font-bold text-xl">BPC</span>
         </div>
         <p class="text-sm text-neutral-600 mt-2">
-          A professional marketplace for construction materials in Bangladesh.
+          A professional marketpla for construction materials in Bangladesh.
           Transparent prices, fast delivery, verified suppliers.
         </p>
       </div>
