@@ -3,23 +3,20 @@ let products = [];
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
 let DISTRICT = localStorage.getItem("bpc-DISTRICTS") || "";
 let SEARCH_QUERY = "";
-let ACTIVE_CATEGORY = "all"; // <-- NEW
+let ACTIVE_CATEGORY = "all";
 
-// ============== DOM Elements =================
+// ================== DOM Elements ==================
 const openCartBtnEl = document.getElementById("open-cart");
 const closeCartBtnEl = document.getElementById("close-cart");
 const cartSidebarEl = document.getElementById("cart-sidebar");
 const cartOverlayEl = document.getElementById("cart-overlay");
 const cartItemsEl = document.getElementById("cart-items");
-const cartSummaryEl = document.getElementById("cart-summary"); // ✅ added
-const cartSubtotalEl = document.getElementById("cart-subtotal");
-const cartDeliveryEl = document.getElementById("cart-delivery");
-const cartTotalEl = document.getElementById("cart-total");
+const cartSummaryEl = document.getElementById("cart-summary");
 const cartCountEl = document.getElementById("cartCount");
 const productListEl = document.getElementById("productsGrid");
 const districtSelectEl = document.getElementById("districtSelect");
 const searchInputEl = document.getElementById("searchInput");
-const categoryFiltersEl = document.getElementById("categoryFilters"); // <-- NEW
+const categoryFiltersEl = document.getElementById("categoryFilters");
 
 // ================== Districts ==================
 const allDistricts = [
@@ -82,7 +79,10 @@ function renderProducts() {
       <p class="text-gray-700 font-bold">৳${p.price.toLocaleString()}</p>
       <p class="text-xs text-gray-500">Unit: ${p.unit}</p>
       <p class="text-xs text-gray-500">Weight: ${p.weight} kg</p>
-      <button onclick="addToCart('${p.id}')" class="mt-2 w-full bg-black text-white py-2 rounded hover:bg-gray-800">Add to Cart</button>
+      <button onclick="addToCart('${p.id}')" 
+        class="mt-2 w-full bg-black text-white py-2 rounded hover:bg-gray-800">
+        Add to Cart
+      </button>
     </div>`
     )
     .join("");
@@ -134,7 +134,13 @@ function addToCart(id) {
   if (item) {
     item.qty += 1;
   } else {
-    CART.push({ id: product.id, name: product.name, price: product.price, weight: product.weight, qty: 1 });
+    CART.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      weight: product.weight,
+      qty: 1
+    });
   }
   saveCart();
 }
@@ -169,13 +175,13 @@ function getDeliveryCost(totalWeight) {
   return Math.max(calc, minCost);
 }
 
-// ==== CART RENDER (FIXED) ====
+// ================== CART RENDER ==================
 function renderCart() {
   cartItemsEl.innerHTML = "";
 
   if (CART.length === 0) {
     cartItemsEl.innerHTML = `<p class="text-gray-500">Your cart is empty.</p>`;
-    if (cartSummaryEl) cartSummaryEl.innerHTML = ""; // hide totals if empty
+    if (cartSummaryEl) cartSummaryEl.innerHTML = "";
     if (cartCountEl) cartCountEl.textContent = "0";
     return;
   }
@@ -183,7 +189,7 @@ function renderCart() {
   let subtotal = 0;
   let totalWeight = 0;
 
-  CART.forEach(item => {
+  CART.forEach((item) => {
     subtotal += item.price * item.qty;
     totalWeight += item.weight * item.qty;
 
@@ -231,10 +237,10 @@ if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
 if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
-// ==== QUOTATION FORM ===
+// ================== QUOTATION FORM ==================
 const quotationFormEl = document.getElementById("quotationForm");
 if (quotationFormEl) {
-  quotationFormEl.addEventListener("submit", function(e) {
+  quotationFormEl.addEventListener("submit", function (e) {
     e.preventDefault();
 
     const templateParams = {
@@ -244,14 +250,18 @@ if (quotationFormEl) {
       message: document.getElementById("qMessage").value
     };
 
-    emailjs.send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
-      .then(function(response) {
-        alert("Quotation request sent successfully!");
-        quotationFormEl.reset();
-      }, function(error) {
-        alert("Failed to send request. Please try again.");
-        console.error(error);
-      });
+    emailjs
+      .send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
+      .then(
+        function () {
+          alert("Quotation request sent successfully!");
+          quotationFormEl.reset();
+        },
+        function (error) {
+          alert("Failed to send request. Please try again.");
+          console.error(error);
+        }
+      );
   });
 }
 
@@ -262,11 +272,13 @@ function renderDistricts() {
   districtSelectEl.innerHTML = `
     <option value="" disabled ${DISTRICT === "" ? "selected" : ""}>Deliver to</option>
     ${allDistricts
-      .map((d) => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`)
+      .map(
+        (d) =>
+          `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`
+      )
       .join("")}
   `;
 
-  // ✅ Only save when user selects a district
   districtSelectEl.addEventListener("change", (e) => {
     DISTRICT = e.target.value;
     localStorage.setItem("bpc-DISTRICTS", DISTRICT);
