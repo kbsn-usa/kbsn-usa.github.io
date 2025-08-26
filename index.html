@@ -76,7 +76,7 @@
       </div>
     </section>
 
-    <!-- Search + Delivery + Cart -->
+    <!-- Search + Delivery -->
     <section class="bg-white rounded-2xl border">
       <div class="p-4 md:p-6 space-y-4">
         <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
@@ -91,11 +91,6 @@
             <label class="text-xs text-neutral-600 block mb-1">Deliver to</label>
             <select id="districtSelect" class="h-11 w-full border rounded-lg px-3"></select>
           </div>
-          <!-- Cart -->
-          <button id="openCartBtn" class="bg-black text-white rounded-lg px-3 py-2 h-11 flex items-center gap-2">
-            <i data-lucide="shopping-cart" class="h-4 w-4"></i>
-            <span>Cart (<span id="cartCount">0</span>)</span>
-          </button>
         </div>
         <!-- Category Pills -->
         <div id="categoryPills" class="flex flex-wrap gap-2"></div>
@@ -135,34 +130,39 @@
   <!-- Product Details Sheet -->
   <div id="detailsSheet" class="fixed top-0 right-0 h-full w-full max-w-xl z-50 bg-white shadow-2xl p-6 overflow-y-auto hidden"></div>
 
-  <!-- Cart Drawer -->
-  <div id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-md z-50 bg-white p-6 shadow-2xl hidden">
-    <div id="cart-items"></div>
-    <div id="cart-subtotal" class="mt-4"></div>
-  </div>
-<!-- CART SIDEBAR -->
-<div id="cart-sidebar" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
-  <div class="flex justify-between items-center p-4 border-b">
-    <h2 class="text-lg font-bold">Your Cart</h2>
-    <button id="close-cart" class="text-red-500 text-xl">&times;</button>
-  </div>
-  <div id="cart-items" class="flex-1 overflow-y-auto p-4"></div>
-  <div class="border-t p-4 space-y-2">
-    <div class="flex justify-between">
-      <span>Subtotal:</span>
-      <span id="cart-subtotal">৳0</span>
+  <!-- Floating Cart Button -->
+  <button id="open-cart" class="fixed bottom-5 right-5 bg-black text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 z-40">
+    <i data-lucide="shopping-cart" class="h-5 w-5"></i>
+    <span>Cart (<span id="cartCount">0</span>)</span>
+  </button>
+
+  <!-- CART SIDEBAR -->
+  <div id="cart-sidebar" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h2 class="text-lg font-bold">Your Cart</h2>
+      <button id="close-cart" class="text-red-500 text-xl">&times;</button>
     </div>
-    <div class="flex justify-between">
-      <span>Delivery:</span>
-      <span id="cart-delivery">৳0</span>
+    <div id="cart-items" class="flex-1 overflow-y-auto p-4"></div>
+    <div class="border-t p-4 space-y-2">
+      <div class="flex justify-between">
+        <span>Subtotal:</span>
+        <span id="cart-subtotal">৳0</span>
+      </div>
+      <div class="flex justify-between">
+        <span>Delivery:</span>
+        <span id="cart-delivery">৳0</span>
+      </div>
+      <div class="flex justify-between font-bold">
+        <span>Total:</span>
+        <span id="cart-total">৳0</span>
+      </div>
+      <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 mt-2">Checkout</button>
     </div>
-    <div class="flex justify-between font-bold">
-      <span>Total:</span>
-      <span id="cart-total">৳0</span>
-    </div>
-    <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 mt-2">Checkout</button>
   </div>
-</div>
+
+  <!-- Overlay (click outside to close cart) -->
+  <div id="cart-overlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
+
   <!-- Footer -->
   <footer class="border-t bg-white">
     <div class="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-3 gap-6">
