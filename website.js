@@ -153,7 +153,11 @@ function removeFromCart(index) {
 
 function updateQty(index, qty) {
   if (CART[index]) {
-    CART[index].qty = qty > 0 ? qty : 1;
+    if (qty <= 0) {
+      removeFromCart(index);
+    } else {
+      CART[index].qty = qty;
+    }
   }
   saveCart();
 }
