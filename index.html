@@ -110,6 +110,13 @@
             For large or industrial orders, submit your BOQ or requirements.
             Our team will verify supplier availability and lock reasonable pricing.
           </p>
+          <form id="quotationForm" class="space-y-2">
+  <input id="q-name" type="text" class="w-full border p-2 rounded" placeholder="Your name" required />
+  <input id="q-phone" type="tel" class="w-full border p-2 rounded" placeholder="Phone number" required />
+  <input id="q-company" type="text" class="w-full border p-2 rounded" placeholder="Company (optional)" />
+  <textarea id="q-message" class="w-full border p-2 rounded" placeholder="List items, quantities, specs..."></textarea>
+  <button type="submit" class="w-full bg-black text-white py-2 rounded">Request Quotation</button>
+</form>
         </div>
         <form id="quoteForm" class="grid grid-cols-2 gap-3">
           <input placeholder="Your name" class="h-11 border rounded-lg px-3" required />
