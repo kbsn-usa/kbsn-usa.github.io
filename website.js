@@ -177,50 +177,81 @@ function getDeliveryCost(totalWeight) {
 
 // ================== CART RENDER ==================
 function renderCart() {
-  cartItemsEl.innerHTML = "";
+  const cartItemsContainer = document.getElementById("cart-items");
+  const emptyCart = document.getElementById("empty-cart");
+  const summary = document.getElementById("cart-summary");
 
-  if (CART.length === 0) {
-    cartItemsEl.innerHTML = `<p class="text-gray-500">Your cart is empty.</p>`;
-    if (cartSummaryEl) cartSummaryEl.innerHTML = "";
-    if (cartCountEl) cartCountEl.textContent = "0";
+  cartItemsContainer.innerHTML = "";
+
+  if (cart.length === 0) {
+    emptyCart.classList.remove("hidden");
+    summary.classList.add("hidden");
     return;
   }
 
-  let subtotal = 0;
-  let totalWeight = 0;
+  emptyCart.classList.add("hidden");
+  summary.classList.remove("hidden");
 
-  CART.forEach((item) => {
-    subtotal += item.price * item.qty;
-    totalWeight += item.weight * item.qty;
+  cart.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "flex items-center gap-4 p-3 border rounded-xl bg-white shadow-sm";
 
-    cartItemsEl.innerHTML += `
-      <div class="flex justify-between items-center border-b py-2">
-        <div>
-          <p class="font-medium">${item.name}</p>
-          <p class="text-sm text-gray-500">Qty: ${item.qty}</p>
+    div.innerHTML = `
+      <img src="${item.image}" alt="${item.name}" class="h-14 w-14 rounded-lg object-cover border" />
+      <div class="flex-1">
+        <h4 class="font-medium text-sm">${item.name}</h4>
+        <p class="text-xs text-neutral-500">৳${item.price} per unit</p>
+        <div class="flex items-center gap-2 mt-2">
+          <button class="decrease px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300" data-index="${index}">–</button>
+          <span class="min-w-[24px] text-center">${item.quantity}</span>
+          <button class="increase px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300" data-index="${index}">+</button>
         </div>
-        <p>৳${item.price * item.qty}</p>
+      </div>
+      <div class="flex flex-col items-end gap-2">
+        <span class="font-semibold">৳${item.price * item.quantity}</span>
+        <button class="remove text-red-500 hover:text-red-700" data-index="${index}">
+          <i data-lucide="trash-2" class="h-4 w-4"></i>
+        </button>
       </div>
     `;
+
+    cartItemsContainer.appendChild(div);
   });
 
-  const delivery = getDeliveryCost(totalWeight);
-  const total = subtotal + delivery;
+  lucide.createIcons();
+  updateCartSummary();
 
-  if (cartSummaryEl) {
-    cartSummaryEl.innerHTML = `
-      <div class="pt-4 border-t mt-4">
-        <p class="flex justify-between"><span>Subtotal:</span> <span>৳${subtotal}</span></p>
-        <p class="flex justify-between"><span>Delivery:</span> <span>৳${delivery}</span></p>
-        <p class="flex justify-between font-bold"><span>Total:</span> <span>৳${total}</span></p>
-        <button class="w-full mt-3 bg-green-600 text-white py-2 rounded">Checkout</button>
-      </div>
-    `;
-  }
+  // Add event listeners for buttons
+  document.querySelectorAll(".increase").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const index = e.target.dataset.index;
+      cart[index].quantity++;
+      saveCart();
+      renderCart();
+    });
+  });
 
-  if (cartCountEl) {
-    cartCountEl.textContent = CART.reduce((sum, item) => sum + item.qty, 0);
-  }
+  document.querySelectorAll(".decrease").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const index = e.target.dataset.index;
+      if (cart[index].quantity > 1) {
+        cart[index].quantity--;
+      } else {
+        cart.splice(index, 1);
+      }
+      saveCart();
+      renderCart();
+    });
+  });
+
+  document.querySelectorAll(".remove").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const index = e.target.dataset.index;
+      cart.splice(index, 1);
+      saveCart();
+      renderCart();
+    });
+  });
 }
 
 // ================== CART OPEN/CLOSE ==================
