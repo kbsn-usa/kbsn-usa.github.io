@@ -112,10 +112,10 @@
           </p>
         </div>
         <form id="quotationForm" class="grid grid-cols-2 gap-3">
-          <input id="q-name" type="text" class="w-full border p-2 rounded" placeholder="Your name" class="h-11 border rounded-lg px-3" required />
+          <input id="q-name" type="text" class="w-full border p-2 rounded" placeholder="Your Name" class="h-11 border rounded-lg px-3" required />
           <input id="q-phone" type="tel" class="w-full border p-2 rounded" placeholder="Phone Number" class="h-11 border rounded-lg px-3" required />
-          <input id="q-company" type="text" class="w-full border p-2 rounded" placeholder="Company (optional)" class="h-11 col-span-2 border rounded-lg px-3" />
-          <textarea id="q-message" class="w-full border p-2 rounded" placeholder="List items, quantities, specs (or paste BOQ link)" class="col-span-2 border rounded-lg px-3 py-2 h-28"></textarea>
+          <input id="q-company" type="text" class="w-full border p-2 rounded" placeholder="Your Address" class="h-11 border rounded-lg px-3" required />
+          <textarea id="q-message" class="w-full border p-2 rounded" placeholder="List items, quantities, specs (or paste BOQ link)" class="col-span-2 border rounded-lg px-3 py-2 h-28" required></textarea>
           <button type="submit" class="col-span-2 bg-black text-white rounded-lg px-3 py-2 h-11">Request Quotation</button>
         </form>
       </div>
@@ -203,5 +203,11 @@
     lucide.createIcons();
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script type="text/javascript">
+  (function(){
+    emailjs.init("fpDzznXzakdQE1aQh"); // Replace with your EmailJS Public Key
+  })();
+</script>
 </body>
 </html>
