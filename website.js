@@ -239,9 +239,10 @@ function renderDistricts() {
       .join("")}
   `;
 
+  // ✅ Only save when user selects a district
   districtSelectEl.addEventListener("change", (e) => {
     DISTRICT = e.target.value;
-    localStorage.setItem("bpc-DISTRICTS", DISTRICT); // fixed key name (your init used "bpc-DISTRICTS")
+    localStorage.setItem("bpc-DISTRICTS", DISTRICT);
     renderCart();
   });
 }
