@@ -10,7 +10,8 @@
     "price": 9500,
     "leadTimeDays": 2,
     "rating": 4.7,
-    "image": "https://bpcproc.com/assets/Solid%20Clay%20Bricks%20(1st%20Class).webp"
+    "image": "https://bpcproc.com/assets/Solid%20Clay%20Bricks%20(1st%20Class).webp",
+    "weight": 2500
   },
   {
     "id": "p2",
@@ -23,7 +24,8 @@
     "price": 88500,
     "leadTimeDays": 3,
     "rating": 4.8,
-    "image": "https://bpcproc.com/assets/60%20Grade%20Rod%20(12mm).webp"
+    "image": "https://bpcproc.com/assets/60%20Grade%20Rod%20(12mm).webp",
+    "weight": 1000
   },
   {
     "id": "p3",
@@ -36,7 +38,8 @@
     "price": 520,
     "leadTimeDays": 1,
     "rating": 4.5,
-    "image": "https://bpcproc.com/assets/OPC%20Cement%20(50kg).webp"
+    "image": "https://bpcproc.com/assets/OPC%20Cement%20(50kg).webp",
+    "weight": 50
   },
   {
     "id": "p4",
@@ -49,7 +52,8 @@
     "price": 1450,
     "leadTimeDays": 2,
     "rating": 4.3,
-    "image": "https://bpcproc.com/assets/Ceramic%20Floor%20Tiles%2024x24.webp"
+    "image": "https://bpcproc.com/assets/Ceramic%20Floor%20Tiles%2024x24.webp",
+    "weight": 25
   },
   {
     "id": "p5",
@@ -62,7 +66,8 @@
     "price": 320,
     "leadTimeDays": 2,
     "rating": 4.1,
-    "image": "https://bpcproc.com/assets/CPVC%20Pipe%201%20inch.webp"
+    "image": "https://bpcproc.com/assets/CPVC%20Pipe%201%20inch.webp",
+    "weight": 5
   },
   {
     "id": "p6",
@@ -75,6 +80,7 @@
     "price": 110,
     "leadTimeDays": 1,
     "rating": 4.6,
-    "image": "https://bpcproc.com/assets/3-Core%20Copper%20Cable%202.5mm.webp"
+    "image": "https://bpcproc.com/assets/3-Core%20Copper%20Cable%202.5mm.webp",
+    "weight": 0.25
   }
 ]
