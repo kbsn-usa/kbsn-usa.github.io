@@ -1,7 +1,14 @@
 // ================== GLOBAL STATE ==================
 let products = [];
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
-let DISTRICT = localStorage.getItem("bpc-DISTRICT") || "Dhaka";
+let DISTRICT = localStorage.getItem("bpc-DISTRICTS") || "";
+
+districtSelectEl.innerHTML = `
+  <option value="" disabled ${DISTRICT === "" ? "selected" : ""}>Deliver to</option>
+  ${allDistricts
+    .map(d => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`)
+    .join("")}
+`;
 let SEARCH_QUERY = "";
 let ACTIVE_CATEGORY = "all"; // <-- NEW
 
