@@ -46,7 +46,7 @@ const leadTimeLabel = (days) => {
 };
 
 function saveAll() {
-  localStorage.setItem("bpc-district", DISTRICT);
+  localStorage.setItem("bpc-DISTRICTS", DISTRICT);
   localStorage.setItem("bpc-cart", JSON.stringify(CART));
 }
 
