@@ -2,6 +2,8 @@
 let products = [];
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
 let DISTRICT = localStorage.getItem("bpc-DISTRICT") || "Dhaka";
+let SEARCH_QUERY = "";
+let ACTIVE_CATEGORY = "all"; // <-- NEW
 
 // ============== DOM Elements =================
 const openCartBtnEl = document.getElementById("open-cart");
@@ -15,6 +17,8 @@ const cartTotalEl = document.getElementById("cart-total");
 const cartCountEl = document.getElementById("cartCount");
 const productListEl = document.getElementById("productsGrid");
 const districtSelectEl = document.getElementById("districtSelect");
+const searchInputEl = document.getElementById("searchInput");
+const categoryFiltersEl = document.getElementById("categoryFilters"); // <-- NEW
 
 // ================== Districts ==================
 const allDistricts = [
@@ -37,9 +41,10 @@ async function init() {
   try {
     const res = await fetch("data/products.json");
     products = await res.json();
+    renderDistricts();
+    renderCategories();
     renderProducts();
     renderCart();
-    renderDistricts();
   } catch (err) {
     console.error("Error loading products:", err);
   }
@@ -50,10 +55,26 @@ init();
 function renderProducts() {
   if (!productListEl) return;
 
-  productListEl.innerHTML = products
+  const filtered = products.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(SEARCH_QUERY) ||
+      p.brand.toLowerCase().includes(SEARCH_QUERY);
+
+    const matchesCategory =
+      ACTIVE_CATEGORY === "all" || p.category === ACTIVE_CATEGORY;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  if (filtered.length === 0) {
+    productListEl.innerHTML = `<p class="text-gray-500">No products found.</p>`;
+    return;
+  }
+
+  productListEl.innerHTML = filtered
     .map(
       (p) => `
-    <div class="border rounded-lg p-3 shadow hover:shadow-lg transition">
+    <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white">
       <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded">
       <h3 class="text-lg font-semibold mt-2">${p.name}</h3>
       <p class="text-sm text-gray-500">${p.brand}</p>
@@ -64,6 +85,43 @@ function renderProducts() {
     </div>`
     )
     .join("");
+}
+
+// ================== SEARCH ==================
+if (searchInputEl) {
+  searchInputEl.addEventListener("input", (e) => {
+    SEARCH_QUERY = e.target.value.trim().toLowerCase();
+    renderProducts();
+  });
+}
+
+// ================== CATEGORY FILTERS ==================
+function renderCategories() {
+  if (!categoryFiltersEl) return;
+
+  const categories = ["all", ...new Set(products.map((p) => p.category))];
+
+  categoryFiltersEl.innerHTML = categories
+    .map(
+      (cat) => `
+      <button
+        onclick="setCategory('${cat}')"
+        class="px-3 py-1 rounded-full border ${
+          ACTIVE_CATEGORY === cat
+            ? "bg-black text-white"
+            : "bg-white text-gray-600 hover:bg-gray-100"
+        }"
+      >
+        ${cat.charAt(0).toUpperCase() + cat.slice(1)}
+      </button>`
+    )
+    .join("");
+}
+
+function setCategory(cat) {
+  ACTIVE_CATEGORY = cat;
+  renderCategories();
+  renderProducts();
 }
 
 // ================== CART ==================
@@ -124,7 +182,7 @@ function renderCart() {
 
   cartItemsEl.innerHTML =
     detailed.length === 0
-      ? "<p class='text-gray-500'>Cart is empty.</p>"
+      ? "<p class='text-gray-500 text-center py-6'>Your cart is empty.</p>"
       : detailed
           .map(
             (i) => `
@@ -151,13 +209,10 @@ function renderCart() {
 
 // ================== CART OPEN/CLOSE ==================
 function openCart() {
-  if (!cartSidebarEl) return;
   cartSidebarEl.classList.remove("translate-x-full");
   cartOverlayEl.classList.remove("hidden");
-  renderCart();
 }
 function closeCart() {
-  if (!cartSidebarEl) return;
   cartSidebarEl.classList.add("translate-x-full");
   cartOverlayEl.classList.add("hidden");
 }
