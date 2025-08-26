@@ -84,10 +84,11 @@
             <input id="searchInput" class="pl-9 h-11 w-full border rounded-lg px-3"
               placeholder="Search bricks, rod, cement, tiles, sanitary, cables..." />
           </div>
-          <div class="md:w-72">
-            <select id="districtSelect" class="h-11 w-full border rounded-lg px-3"
-              placeholder="Deliver to"></select>
-          </div>
+          <div class="relative w-full flex-1">
+ <select id="districtSelect" class="h-11 w-full border rounded-lg px-3">
+    <option value="" disabled selected>Deliver to</option>
+  </select>
+</div>
         </div>
         <div id="categoryFilters" class="flex gap-2 flex-wrap mb-4"></div>
         <div id="categoryPills" class="flex flex-wrap gap-2"></div>
