@@ -3,13 +3,15 @@
 // =======================
 
 // Elements
-const productsEl = document.getElementById("productsGrid");   // FIXED
+const productsEl = document.getElementById("productsGrid");
 const cartItemsEl = document.getElementById("cart-items");
 const cartSubtotalEl = document.getElementById("cart-subtotal");
-const cartCountEl = document.getElementById("cartCount");     // FIXED
-const categoryPillsEl = document.getElementById("categoryPills"); // FIXED
-const searchInputEl = document.getElementById("searchInput");     // FIXED
-const districtSelectEl = document.getElementById("districtSelect"); // FIXED
+const cartCountEl = document.getElementById("cartCount");
+const categoryPillsEl = document.getElementById("categoryPills");
+const searchInputEl = document.getElementById("searchInput");
+const districtSelectEl = document.getElementById("districtSelect");
+const detailsSheetEl = document.getElementById("detailsSheet");
+
 // Cart state
 let cart = JSON.parse(localStorage.getItem("bpc-cart")) || [];
 let district = localStorage.getItem("bpc-district") || "Dhaka";
@@ -19,18 +21,15 @@ let productsData = [];
 // Utility Functions
 // =======================
 
-// Format currency in BDT
 function formatBDT(amount) {
   return `৳${amount.toLocaleString("en-BD")}`;
 }
 
-// Save cart & district in localStorage
 function saveCart() {
   localStorage.setItem("bpc-cart", JSON.stringify(cart));
   localStorage.setItem("bpc-district", district);
 }
 
-// Count cart items
 function cartItemCount() {
   return cart.reduce((sum, item) => sum + (item.qty || 0), 0);
 }
@@ -39,11 +38,11 @@ function cartItemCount() {
 // Product Rendering
 // =======================
 
-// Product card template
 function productCard(p) {
   return `
-    <div class="border rounded-xl p-4 flex flex-col">
-      <div class="h-32 bg-gray-100 mb-2 rounded-md bg-center bg-cover" style="background-image: url('${p.image}')"></div>
+    <div class="border rounded-xl p-4 flex flex-col shadow-sm">
+      <div class="h-32 bg-gray-100 mb-2 rounded-md bg-center bg-cover" 
+           style="background-image: url('${p.image}')"></div>
       <h3 class="font-semibold text-sm line-clamp-2">${p.name}</h3>
       <div class="text-xs text-neutral-500">${p.brand || ""}</div>
       <div class="text-xs text-neutral-500">Unit: ${p.unit || ""}</div>
@@ -56,7 +55,6 @@ function productCard(p) {
   `;
 }
 
-// Render products by category & search
 function renderProducts(category = "all", query = "") {
   let filtered = productsData;
 
@@ -80,10 +78,17 @@ function renderProducts(category = "all", query = "") {
     </div>
   `;
 
-  // Attach add-to-cart handlers
+  // Add to cart handlers
   productsEl.querySelectorAll("[data-add]").forEach(btn => {
     btn.addEventListener("click", () => {
       addToCart(btn.dataset.add);
+    });
+  });
+
+  // Product details handlers
+  productsEl.querySelectorAll("[data-detail]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      showProductDetails(btn.dataset.detail);
     });
   });
 }
@@ -123,9 +128,7 @@ function renderCart() {
         <div class="flex items-center gap-2">
           <button class="h-8 w-8 border rounded grid place-items-center" data-dec="${item.id}">-</button>
           <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${item.id}">+</button>
-          <button class="h-8 w-8 border rounded grid place-items-center" data-del="${item.id}">
-            🗑
-          </button>
+          <button class="h-8 w-8 border rounded grid place-items-center" data-del="${item.id}">🗑</button>
         </div>
       </div>
     </div>
@@ -133,12 +136,11 @@ function renderCart() {
 
   const subtotal = cart.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
 
-  // delivery rule
+  // Delivery rule
   const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(district);
   const deliveryCost = insideDhaka ? 150 : 200;
   const total = subtotal + deliveryCost;
 
-  // update cart footer
   cartSubtotalEl.innerHTML = `
     <div class="flex justify-between text-sm">
       <span>Subtotal</span><span>${formatBDT(subtotal)}</span>
@@ -153,7 +155,7 @@ function renderCart() {
 
   cartCountEl.textContent = String(cartItemCount());
 
-  // Handlers for + / - / delete
+  // Quantity controls
   cartItemsEl.querySelectorAll("[data-inc]").forEach(btn =>
     btn.addEventListener("click", () => {
       const item = cart.find(it => it.id === btn.dataset.inc);
@@ -180,12 +182,42 @@ function renderCart() {
 }
 
 // =======================
+// Product Details Modal
+// =======================
+
+function showProductDetails(productId) {
+  const product = productsData.find(p => p.id === productId);
+  if (!product || !detailsSheetEl) return;
+
+  detailsSheetEl.classList.remove("hidden");
+  detailsSheetEl.innerHTML = `
+    <div class="p-4 max-w-md mx-auto bg-white rounded-2xl shadow-lg">
+      <button onclick="closeDetails()" class="mb-3 text-sm text-neutral-500">✕ Close</button>
+      <img src="${product.image}" class="w-full h-48 object-cover rounded mb-3" />
+      <h2 class="text-xl font-bold mb-1">${product.name}</h2>
+      <p class="text-sm text-neutral-500 mb-1">Brand: ${product.brand || "-"}</p>
+      <p class="text-sm text-neutral-500 mb-1">Origin: ${product.origin || "-"}</p>
+      <p class="text-sm text-neutral-500 mb-1">Quality: ${product.quality || "-"}</p>
+      <p class="text-sm text-neutral-500 mb-3">Lead Time: ${product.leadTimeDays || "N/A"} days</p>
+      <div class="font-bold text-emerald-600 mb-4">${formatBDT(product.price)} / ${product.unit || ""}</div>
+      <button onclick="addToCart('${product.id}')" class="bg-blue-600 text-white rounded px-4 py-2">
+        Add to Cart
+      </button>
+    </div>
+  `;
+}
+
+function closeDetails() {
+  if (detailsSheetEl) detailsSheetEl.classList.add("hidden");
+}
+
+// =======================
 // Init
 // =======================
 
 async function init() {
   try {
-    const res = await fetch("/data/products.json"); // ✅ use leading slash
+    const res = await fetch("/data/products.json");
     productsData = await res.json();
 
     // Render categories
