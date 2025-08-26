@@ -1,182 +1,183 @@
 // ================== GLOBAL STATE ==================
-let PRODUCTS = [];
+let products = [];
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
-let DISTRICT = localStorage.getItem("bpc-DISTRICTS") || "Dhaka";
+let DISTRICT = localStorage.getItem("bpc-DISTRICT") || "Dhaka";
 
-// ================== DISTRICT LIST ==================
-const allDistricts = [
-  "Dhaka","Faridpur","Gazipur","Gopalganj","Kishoreganj","Madaripur","Manikganj","Munshiganj","Narayanganj","Narsingdi","Rajbari","Shariatpur","Tangail",
-  "Chattogram","Bandarban","Brahmanbaria","Chandpur","Cox's Bazar","Cumilla","Feni","Khagrachhari","Lakshmipur","Noakhali","Rangamati",
-  "Khulna","Bagerhat","Chuadanga","Jashore","Jhenaidah","Kushtia","Magura","Meherpur","Narail","Satkhira",
-  "Barishal","Barguna","Bhola","Jhalokati","Patuakhali","Pirojpur",
-  "Sylhet","Habiganj","Moulvibazar","Sunamganj",
-  "Rajshahi","Bogura","Joypurhat","Naogaon","Natore","Chapai Nawabganj","Pabna","Sirajganj",
-  "Rangpur","Dinajpur","Gaibandha","Kurigram","Lalmonirhat","Nilphamari","Panchagarh","Thakurgaon",
-  "Mymensingh","Jamalpur","Netrokona","Sherpur"
-];
-
-// ================== DOM ELEMENTS ==================
-const productGrid = document.getElementById("productsGrid");
-const cartSidebar = document.getElementById("cart-sidebar");
-const cartItemsEl = document.getElementById("cart-items");
-const cartSubtotalEl = document.getElementById("cart-subtotal");
-const cartDeliveryEl = document.getElementById("cart-delivery");
-const cartTotalEl = document.getElementById("cart-total");
+// Elements
+const productListEl = document.getElementById("productList");
+const cartDrawerEl = document.getElementById("cartDrawer");
 const cartCountEl = document.getElementById("cartCount");
+const openCartBtnEl = document.getElementById("openCartBtn");
+const cartOverlayEl = document.getElementById("cartOverlay");
 const districtSelectEl = document.getElementById("districtSelect");
-const cartBtn = document.getElementById("openCartBtn");
-const closeCartBtn = document.getElementById("close-cart");
-const productModal = document.getElementById("detailsSheet");
-const modalContent = document.getElementById("detailsSheet");
 
-// ================== HELPERS ==================
-function saveCart() {
-  localStorage.setItem("bpc-CART", JSON.stringify(CART));
-}
-
-function BDT(x) {
-  return `৳${x.toLocaleString()}`;
-}
-
-// ================== DELIVERY COST ==================
-function calculateDeliveryCost() {
-  const totalWeight = CART.reduce((sum, it) => sum + (it.weight || 0) * it.qty, 0);
-  let perKgRate = DISTRICT === "Dhaka" || ["Gazipur","Narayanganj","Narsingdi","Manikganj","Munshiganj"].includes(DISTRICT)
-    ? 2.1
-    : 2.5;
-
-  let minCost = DISTRICT === "Dhaka" || ["Gazipur","Narayanganj","Narsingdi","Manikganj","Munshiganj"].includes(DISTRICT)
-    ? 150
-    : 200;
-
-  let calculated = totalWeight * perKgRate;
-  return Math.max(minCost, Math.ceil(calculated));
-}
-
-// ================== RENDER PRODUCTS ==================
-function renderProducts() {
-  productGrid.innerHTML = PRODUCTS.map(p => `
-    <div class="border rounded-lg shadow-sm p-3 flex flex-col">
-      <img src="${p.image}" alt="${p.name}" class="h-40 w-full object-contain cursor-pointer" onclick="openProductModal('${p.id}')"/>
-      <h3 class="font-semibold mt-2">${p.name}</h3>
-      <p class="text-sm text-neutral-600">${p.brand}</p>
-      <p class="text-xs text-neutral-500">Origin: ${p.origin}</p>
-      <p class="text-xs text-neutral-500">Unit: ${p.unit ?? ""}</p>
-      <p class="text-xs text-neutral-500">Weight: ${p.weight ?? 0} kg</p>
-      <p class="font-bold mt-1">${BDT(p.price)}</p>
-      <button class="mt-auto bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700" onclick="addToCart('${p.id}')">Add to Cart</button>
-    </div>
-  `).join("");
-}
-
-// ================== CART FUNCTIONS ==================
-function addToCart(id) {
-  const product = PRODUCTS.find(p => p.id === id);
-  const existing = CART.find(it => it.id === id);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    CART.push({...product, qty: 1});
-  }
-  saveCart();
-  renderCart();
-  openCart();
-}
-
-function removeFromCart(id) {
-  CART = CART.filter(it => it.id !== id);
-  saveCart();
-  renderCart();
-}
-
-function changeQty(id, qty) {
-  const item = CART.find(it => it.id === id);
-  if (item) {
-    item.qty = Math.max(1, qty);
-    saveCart();
-    renderCart();
-  }
-}
-
-function renderCart() {
-  cartItemsEl.innerHTML = CART.map(it => `
-    <div class="flex justify-between items-center border-b py-2">
-      <div>
-        <p class="font-medium">${it.name}</p>
-        <p class="text-xs text-neutral-500">${BDT(it.price)} × ${it.qty} | ${it.weight} kg each</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <input type="number" min="1" value="${it.qty}" class="w-12 border rounded text-center"
-          onchange="changeQty('${it.id}', parseInt(this.value))"/>
-        <button class="text-red-500" onclick="removeFromCart('${it.id}')">✕</button>
-      </div>
-    </div>
-  `).join("");
-
-  const subtotal = CART.reduce((sum, it) => sum + it.price * it.qty, 0);
-  const delivery = calculateDeliveryCost();
-  const total = subtotal + delivery;
-
-  cartSubtotalEl.textContent = BDT(subtotal);
-  cartDeliveryEl.textContent = BDT(delivery);
-  cartTotalEl.textContent = BDT(total);
-  cartCountEl.textContent = CART.reduce((sum, it) => sum + it.qty, 0);
-}
-
-// ================== CART SIDEBAR ==================
-function openCart() {
-  cartSidebar.classList.remove("translate-x-full");
-}
-function closeCart() {
-  cartSidebar.classList.add("translate-x-full");
-}
-
-// ================== PRODUCT MODAL ==================
-function openProductModal(id) {
-  const p = PRODUCTS.find(p => p.id === id);
-  if (!p) return;
-
-  modalContent.innerHTML = `
-    <div class="p-4">
-      <img src="${p.image}" alt="${p.name}" class="h-60 mx-auto object-contain"/>
-      <h2 class="text-xl font-bold mt-3">${p.name}</h2>
-      <p class="text-sm text-neutral-600">${p.brand}</p>
-      <p class="text-sm text-neutral-600">Origin: ${p.origin}</p>
-      <p class="text-sm text-neutral-600">Unit: ${p.unit ?? ""}</p>
-      <p class="text-sm text-neutral-600">Weight: ${p.weight ?? 0} kg</p>
-      <p class="text-lg font-bold mt-2">${BDT(p.price)}</p>
-      <button class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onclick="addToCart('${p.id}')">Add to Cart</button>
-    </div>
-  `;
-  productModal.classList.remove("hidden");
-}
-function closeProductModal() {
-  productModal.classList.add("hidden");
-}
+// Districts
+const allDistricts = [
+  "Dhaka", "Gazipur", "Narayanganj", "Munshiganj", "Manikganj",
+  "Tangail", "Kishoreganj", "Narsingdi", // around Dhaka
+  "Chattogram", "Cox's Bazar", "Khulna", "Rajshahi", "Sylhet", "Rangpur",
+  "Barisal", "Mymensingh", "Cumilla", "Feni", "Noakhali", "Lakshmipur",
+  "Chandpur", "Brahmanbaria", "Habiganj", "Moulvibazar", "Sunamganj",
+  "Pabna", "Bogura", "Joypurhat", "Naogaon", "Natore", "Sirajganj",
+  "Jashore", "Satkhira", "Magura", "Jhenaidah", "Narail", "Kushtia",
+  "Meherpur", "Chuadanga", "Barishal", "Patuakhali", "Bhola",
+  "Pirojpur", "Jhalokati", "Barguna", "Mymensingh", "Netrokona",
+  "Sherpur", "Jamalpur", "Dinajpur", "Thakurgaon", "Panchagarh",
+  "Nilphamari", "Lalmonirhat", "Kurigram", "Gaibandha", "Rangpur",
+  "Bagerhat", "Khagrachhari", "Rangamati", "Bandarban"
+];
 
 // ================== INIT ==================
 async function init() {
-  const res = await fetch("products.json");
-  PRODUCTS = await res.json();
+  try {
+    const res = await fetch("data/products.json");
+    products = await res.json();
+    renderProducts();
+    renderCart();
+    renderDistricts();
+  } catch (err) {
+    console.error("Error loading products:", err);
+  }
+}
+init();
 
-  renderProducts();
-  renderCart();
+// ================== PRODUCTS ==================
+function renderProducts() {
+  if (!productListEl) return;
 
-  // Populate district dropdown
-  districtSelectEl.innerHTML = allDistricts
-    .map(d => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`)
+  productListEl.innerHTML = products
+    .map(
+      (p) => `
+    <div class="border rounded-lg p-3 shadow hover:shadow-lg transition">
+      <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded">
+      <h3 class="text-lg font-semibold mt-2">${p.name}</h3>
+      <p class="text-sm text-gray-500">${p.brand}</p>
+      <p class="text-gray-700 font-bold">৳${p.price.toLocaleString()}</p>
+      <p class="text-xs text-gray-500">Unit: ${p.unit}</p>
+      <p class="text-xs text-gray-500">Weight: ${p.weight} kg</p>
+      <button onclick="addToCart('${p.id}')" class="mt-2 w-full bg-black text-white py-2 rounded hover:bg-gray-800">Add to Cart</button>
+    </div>`
+    )
     .join("");
+}
 
-  districtSelectEl.addEventListener("change", e => {
+// ================== CART ==================
+function addToCart(id) {
+  const item = CART.find((i) => i.id === id);
+  if (item) {
+    item.qty += 1;
+  } else {
+    CART.push({ id, qty: 1 });
+  }
+  saveCart();
+}
+
+function removeFromCart(id) {
+  CART = CART.filter((i) => i.id !== id);
+  saveCart();
+}
+
+function updateQty(id, qty) {
+  const item = CART.find((i) => i.id === id);
+  if (item) {
+    item.qty = qty > 0 ? qty : 1;
+  }
+  saveCart();
+}
+
+function saveCart() {
+  localStorage.setItem("bpc-CART", JSON.stringify(CART));
+  renderCart();
+}
+
+function getDeliveryCost(totalWeight) {
+  const insideDhaka = [
+    "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
+    "Tangail","Kishoreganj","Narsingdi"
+  ];
+  const perKgRate = insideDhaka.includes(DISTRICT) ? 2.1 : 3.5;
+  const minCost = insideDhaka.includes(DISTRICT) ? 150 : 200;
+
+  const calc = totalWeight * perKgRate;
+  return Math.max(calc, minCost);
+}
+
+function renderCart() {
+  if (!cartDrawerEl || !cartCountEl) return;
+
+  const detailed = CART.map((c) => {
+    const p = products.find((pr) => pr.id === c.id);
+    return { ...p, qty: c.qty, subtotal: p.price * c.qty, weight: p.weight * c.qty };
+  });
+
+  const subtotal = detailed.reduce((sum, i) => sum + i.subtotal, 0);
+  const totalWeight = detailed.reduce((sum, i) => sum + i.weight, 0);
+  const deliveryCost = getDeliveryCost(totalWeight);
+  const grandTotal = subtotal + deliveryCost;
+
+  cartCountEl.textContent = CART.reduce((sum, i) => sum + i.qty, 0);
+
+  cartDrawerEl.innerHTML = `
+    <div class="p-4 flex-1 overflow-y-auto">
+      <h2 class="text-lg font-semibold mb-2">Your Cart</h2>
+      ${
+        detailed.length === 0
+          ? "<p class='text-gray-500'>Cart is empty.</p>"
+          : detailed
+              .map(
+                (i) => `
+          <div class="flex justify-between items-center mb-2 border-b pb-2">
+            <div>
+              <p class="font-semibold">${i.name}</p>
+              <p class="text-sm text-gray-500">৳${i.price} × ${i.qty}</p>
+              <p class="text-xs text-gray-400">${i.weight} kg</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="number" min="1" value="${i.qty}" 
+                onchange="updateQty('${i.id}', this.value)" 
+                class="w-12 border rounded text-center">
+              <button onclick="removeFromCart('${i.id}')" class="text-red-500">✕</button>
+            </div>
+          </div>`
+              )
+              .join("")
+      }
+    </div>
+    <div class="p-4 border-t">
+      <p class="flex justify-between"><span>Subtotal:</span> <span>৳${subtotal.toLocaleString()}</span></p>
+      <p class="flex justify-between"><span>Total Weight:</span> <span>${totalWeight} kg</span></p>
+      <p class="flex justify-between"><span>Delivery:</span> <span>৳${deliveryCost.toLocaleString()}</span></p>
+      <p class="flex justify-between font-bold text-lg mt-2"><span>Total:</span> <span>৳${grandTotal.toLocaleString()}</span></p>
+      <button class="w-full mt-3 bg-green-600 text-white py-2 rounded">Checkout</button>
+    </div>
+  `;
+}
+
+// ================== CART OPEN/CLOSE ==================
+function openCart() {
+  if (!cartDrawerEl) return;
+  cartDrawerEl.classList.add("active");
+  cartOverlayEl.classList.remove("hidden");
+  renderCart();
+}
+function closeCart() {
+  if (!cartDrawerEl) return;
+  cartDrawerEl.classList.remove("active");
+  cartOverlayEl.classList.add("hidden");
+}
+
+if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
+if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
+
+// ================== DISTRICT ==================
+function renderDistricts() {
+  if (!districtSelectEl) return;
+  districtSelectEl.innerHTML = allDistricts
+    .map((d) => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`)
+    .join("");
+  districtSelectEl.addEventListener("change", (e) => {
     DISTRICT = e.target.value;
-    localStorage.setItem("bpc-DISTRICTS", DISTRICT);
+    localStorage.setItem("bpc-DISTRICT", DISTRICT);
     renderCart();
   });
 }
-
-init();
-
-// ================== EVENT LISTENERS ==================
-cartBtn.addEventListener("click", openCart);
-closeCartBtn.addEventListener("click", closeCart);
-closeModalBtn.addEventListener("click", closeProductModal);
