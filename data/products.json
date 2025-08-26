@@ -6,11 +6,11 @@
     "brand": "Shah Cement Bricks",
     "origin": "Tongi Kiln, Gazipur",
     "quality": "Premium",
-    "unit": "1000 pcs",
-    "price": 9500,
+    "unit": "per pcs",
+    "price": 11,
     "leadTimeDays": 2,
     "rating": 4.7,
-    "weight": 2500,
+    "weight": 2.2,
     "image": "https://bpcproc.com/assets/Solid%20Clay%20Bricks%20(1st%20Class).webp"
   },
   {
@@ -48,11 +48,11 @@
     "brand": "RAK",
     "origin": "Savar, Dhaka",
     "quality": "Premium",
-    "unit": "per box",
+    "unit": "per sft",
     "price": 1450,
     "leadTimeDays": 2,
     "rating": 4.3,
-    "weight": 30,
+    "weight": 0.75,
     "image": "https://bpcproc.com/assets/Ceramic%20Floor%20Tiles%2024x24.webp"
   },
   {
@@ -62,11 +62,11 @@
     "brand": "Partex",
     "origin": "Narayanganj",
     "quality": "Standard",
-    "unit": "per 10ft",
+    "unit": "per ft",
     "price": 320,
     "leadTimeDays": 2,
     "rating": 4.1,
-    "weight": 5,
+    "weight": 0.35,
     "image": "https://bpcproc.com/assets/CPVC%20Pipe%201%20inch.webp"
   },
   {
