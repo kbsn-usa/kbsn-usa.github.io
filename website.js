@@ -237,7 +237,7 @@ quotationForm.addEventListener("submit", function (e) {
   const company = document.getElementById("q-company").value;
   const message = document.getElementById("q-message").value;
 
-  emailjs.send("service_bpcproc_2025", "template_ioi1yjo", {
+  emailjs.send("service_bpcproc_2025", "template_bkphebd", {
     from_name: name,
     phone_number: phone,
     company: company,
