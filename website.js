@@ -3,7 +3,7 @@ let products = [];
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
 let DISTRICT = localStorage.getItem("bpc-DISTRICT") || "Dhaka";
 
-// ==============DOM Elements=================
+// ============== DOM Elements =================
 const openCartBtnEl = document.getElementById("open-cart");
 const closeCartBtnEl = document.getElementById("close-cart");
 const cartSidebarEl = document.getElementById("cart-sidebar");
@@ -14,11 +14,12 @@ const cartDeliveryEl = document.getElementById("cart-delivery");
 const cartTotalEl = document.getElementById("cart-total");
 const cartCountEl = document.getElementById("cartCount");
 const productListEl = document.getElementById("productsGrid");
+const districtSelectEl = document.getElementById("districtSelect");
 
-// Districts
+// ================== Districts ==================
 const allDistricts = [
   "Dhaka", "Gazipur", "Narayanganj", "Munshiganj", "Manikganj",
-  "Tangail", "Kishoreganj", "Narsingdi", // around Dhaka
+  "Tangail", "Kishoreganj", "Narsingdi",
   "Chattogram", "Cox's Bazar", "Khulna", "Rajshahi", "Sylhet", "Rangpur",
   "Barisal", "Mymensingh", "Cumilla", "Feni", "Noakhali", "Lakshmipur",
   "Chandpur", "Brahmanbaria", "Habiganj", "Moulvibazar", "Sunamganj",
@@ -96,8 +97,8 @@ function saveCart() {
 
 function getDeliveryCost(totalWeight) {
   const insideDhaka = [
-    "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
-    "Tangail","Kishoreganj","Narsingdi"
+    "Dhaka", "Gazipur", "Narayanganj", "Munshiganj", "Manikganj",
+    "Tangail", "Kishoreganj", "Narsingdi"
   ];
   const perKgRate = insideDhaka.includes(DISTRICT) ? 2.1 : 3.5;
   const minCost = insideDhaka.includes(DISTRICT) ? 150 : 200;
@@ -107,7 +108,7 @@ function getDeliveryCost(totalWeight) {
 }
 
 function renderCart() {
-  if (!cartDrawerEl || !cartCountEl) return;
+  if (!cartSidebarEl || !cartCountEl) return;
 
   const detailed = CART.map((c) => {
     const p = products.find((pr) => pr.id === c.id);
@@ -121,56 +122,48 @@ function renderCart() {
 
   cartCountEl.textContent = CART.reduce((sum, i) => sum + i.qty, 0);
 
-  cartDrawerEl.innerHTML = `
-    <div class="p-4 flex-1 overflow-y-auto">
-      <h2 class="text-lg font-semibold mb-2">Your Cart</h2>
-      ${
-        detailed.length === 0
-          ? "<p class='text-gray-500'>Cart is empty.</p>"
-          : detailed
-              .map(
-                (i) => `
-          <div class="flex justify-between items-center mb-2 border-b pb-2">
-            <div>
-              <p class="font-semibold">${i.name}</p>
-              <p class="text-sm text-gray-500">৳${i.price} × ${i.qty}</p>
-              <p class="text-xs text-gray-400">${i.weight} kg</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <input type="number" min="1" value="${i.qty}" 
-                onchange="updateQty('${i.id}', this.value)" 
-                class="w-12 border rounded text-center">
-              <button onclick="removeFromCart('${i.id}')" class="text-red-500">✕</button>
-            </div>
-          </div>`
-              )
-              .join("")
-      }
-    </div>
-    <div class="p-4 border-t">
-      <p class="flex justify-between"><span>Subtotal:</span> <span>৳${subtotal.toLocaleString()}</span></p>
-      <p class="flex justify-between"><span>Total Weight:</span> <span>${totalWeight} kg</span></p>
-      <p class="flex justify-between"><span>Delivery:</span> <span>৳${deliveryCost.toLocaleString()}</span></p>
-      <p class="flex justify-between font-bold text-lg mt-2"><span>Total:</span> <span>৳${grandTotal.toLocaleString()}</span></p>
-      <button class="w-full mt-3 bg-green-600 text-white py-2 rounded">Checkout</button>
-    </div>
-  `;
+  cartItemsEl.innerHTML =
+    detailed.length === 0
+      ? "<p class='text-gray-500'>Cart is empty.</p>"
+      : detailed
+          .map(
+            (i) => `
+        <div class="flex justify-between items-center mb-2 border-b pb-2">
+          <div>
+            <p class="font-semibold">${i.name}</p>
+            <p class="text-sm text-gray-500">৳${i.price} × ${i.qty}</p>
+            <p class="text-xs text-gray-400">${i.weight} kg</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="number" min="1" value="${i.qty}"
+              onchange="updateQty('${i.id}', this.value)"
+              class="w-12 border rounded text-center">
+            <button onclick="removeFromCart('${i.id}')" class="text-red-500">✕</button>
+          </div>
+        </div>`
+          )
+          .join("");
+
+  cartSubtotalEl.textContent = `৳${subtotal.toLocaleString()}`;
+  cartDeliveryEl.textContent = `৳${deliveryCost.toLocaleString()}`;
+  cartTotalEl.textContent = `৳${grandTotal.toLocaleString()}`;
 }
 
 // ================== CART OPEN/CLOSE ==================
 function openCart() {
-  if (!cartDrawerEl) return;
-  cartDrawerEl.classList.add("active");
+  if (!cartSidebarEl) return;
+  cartSidebarEl.classList.remove("translate-x-full");
   cartOverlayEl.classList.remove("hidden");
   renderCart();
 }
 function closeCart() {
-  if (!cartDrawerEl) return;
-  cartDrawerEl.classList.remove("active");
+  if (!cartSidebarEl) return;
+  cartSidebarEl.classList.add("translate-x-full");
   cartOverlayEl.classList.add("hidden");
 }
 
 if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
+if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
 // ================== DISTRICT ==================
