@@ -11,6 +11,7 @@ const closeCartBtnEl = document.getElementById("close-cart");
 const cartSidebarEl = document.getElementById("cart-sidebar");
 const cartOverlayEl = document.getElementById("cart-overlay");
 const cartItemsEl = document.getElementById("cart-items");
+const cartSummaryEl = document.getElementById("cart-summary"); // ✅ added
 const cartSubtotalEl = document.getElementById("cart-subtotal");
 const cartDeliveryEl = document.getElementById("cart-delivery");
 const cartTotalEl = document.getElementById("cart-total");
@@ -126,11 +127,14 @@ function setCategory(cat) {
 
 // ================== CART ==================
 function addToCart(id) {
+  const product = products.find((p) => p.id === id);
+  if (!product) return;
+
   const item = CART.find((i) => i.id === id);
   if (item) {
     item.qty += 1;
   } else {
-    CART.push({ id, qty: 1 });
+    CART.push({ id: product.id, name: product.name, price: product.price, weight: product.weight, qty: 1 });
   }
   saveCart();
 }
@@ -165,51 +169,52 @@ function getDeliveryCost(totalWeight) {
   return Math.max(calc, minCost);
 }
 
-// ==== CART RENDER FIX ====
+// ==== CART RENDER (FIXED) ====
 function renderCart() {
   cartItemsEl.innerHTML = "";
-  if (cart.length === 0) {
+
+  if (CART.length === 0) {
     cartItemsEl.innerHTML = `<p class="text-gray-500">Your cart is empty.</p>`;
-    cartSummaryEl.innerHTML = ""; // hide totals if empty
+    if (cartSummaryEl) cartSummaryEl.innerHTML = ""; // hide totals if empty
+    if (cartCountEl) cartCountEl.textContent = "0";
     return;
   }
 
   let subtotal = 0;
   let totalWeight = 0;
 
-  cart.forEach(item => {
-    subtotal += item.price * item.quantity;
-    totalWeight += item.weight * item.quantity;
+  CART.forEach(item => {
+    subtotal += item.price * item.qty;
+    totalWeight += item.weight * item.qty;
 
     cartItemsEl.innerHTML += `
       <div class="flex justify-between items-center border-b py-2">
         <div>
           <p class="font-medium">${item.name}</p>
-          <p class="text-sm text-gray-500">Qty: ${item.quantity}</p>
+          <p class="text-sm text-gray-500">Qty: ${item.qty}</p>
         </div>
-        <p>৳${item.price * item.quantity}</p>
+        <p>৳${item.price * item.qty}</p>
       </div>
     `;
   });
 
-  // Calculate delivery cost
-  let delivery = 0;
-  if (DISTRICT === "Dhaka") {
-    delivery = Math.max(150, totalWeight * 2.1);
-  } else {
-    delivery = Math.max(200, totalWeight * 3.5);
-  }
-
+  const delivery = getDeliveryCost(totalWeight);
   const total = subtotal + delivery;
 
-  cartSummaryEl.innerHTML = `
-    <div class="pt-4 border-t mt-4">
-      <p class="flex justify-between"><span>Subtotal:</span> <span>৳${subtotal}</span></p>
-      <p class="flex justify-between"><span>Delivery:</span> <span>৳${delivery}</span></p>
-      <p class="flex justify-between font-bold"><span>Total:</span> <span>৳${total}</span></p>
-      <button class="w-full mt-3 bg-green-600 text-white py-2 rounded">Checkout</button>
-    </div>
-  `;
+  if (cartSummaryEl) {
+    cartSummaryEl.innerHTML = `
+      <div class="pt-4 border-t mt-4">
+        <p class="flex justify-between"><span>Subtotal:</span> <span>৳${subtotal}</span></p>
+        <p class="flex justify-between"><span>Delivery:</span> <span>৳${delivery}</span></p>
+        <p class="flex justify-between font-bold"><span>Total:</span> <span>৳${total}</span></p>
+        <button class="w-full mt-3 bg-green-600 text-white py-2 rounded">Checkout</button>
+      </div>
+    `;
+  }
+
+  if (cartCountEl) {
+    cartCountEl.textContent = CART.reduce((sum, item) => sum + item.qty, 0);
+  }
 }
 
 // ================== CART OPEN/CLOSE ==================
@@ -227,25 +232,29 @@ if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
 // ==== QUOTATION FORM ===
-document.getElementById("quotationForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+const quotationFormEl = document.getElementById("quotationForm");
+if (quotationFormEl) {
+  quotationFormEl.addEventListener("submit", function(e) {
+    e.preventDefault();
 
-  const templateParams = {
-    name: document.getElementById("qName").value,
-    phone: document.getElementById("qPhone").value,
-    company: document.getElementById("qCompany").value,
-    message: document.getElementById("qMessage").value
-  };
+    const templateParams = {
+      name: document.getElementById("qName").value,
+      phone: document.getElementById("qPhone").value,
+      company: document.getElementById("qCompany").value,
+      message: document.getElementById("qMessage").value
+    };
 
-  emailjs.send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
-    .then(function(response) {
-      alert("Quotation request sent successfully!");
-      document.getElementById("quotationForm").reset();
-    }, function(error) {
-      alert("Failed to send request. Please try again.");
-      console.error(error);
-    });
-});
+    emailjs.send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
+      .then(function(response) {
+        alert("Quotation request sent successfully!");
+        quotationFormEl.reset();
+      }, function(error) {
+        alert("Failed to send request. Please try again.");
+        console.error(error);
+      });
+  });
+}
+
 // ================== DISTRICT ==================
 function renderDistricts() {
   if (!districtSelectEl) return;
