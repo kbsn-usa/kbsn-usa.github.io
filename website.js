@@ -240,26 +240,14 @@ function removeFromCart(id) {
 function renderCart() {
   if (!cartDrawerEl) return;
 
-  const subtotal = cart.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
+  // Subtotal
+  const subtotal = CART.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
 
-// ✅ delivery rules
-const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(district);
-const deliveryCost = insideDhaka ? 150 : 200;
-const total = subtotal + deliveryCost;
+  // Delivery rules
+  const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(DISTRICT);
+  const deliveryCost = CART.length > 0 ? (insideDhaka ? 150 : 200) : 0;
+  const total = subtotal + deliveryCost;
 
-// ✅ update cart footer (always showing Delivery cost)
-cartSubtotalEl.innerHTML = `
-  <div class="flex justify-between text-sm">
-    <span>Subtotal</span><span>${formatBDT(subtotal)}</span>
-  </div>
-  <div class="flex justify-between text-sm">
-    <span>Delivery</span><span>${formatBDT(deliveryCost)}</span>
-  </div>
-  <div class="flex justify-between font-semibold">
-    <span>Total</span><span>${formatBDT(total)}</span>
-  </div>
-`;
-  
   cartDrawerEl.innerHTML = `
     <div class="h-full flex flex-col">
       <div class="flex items-center justify-between mb-4">
@@ -281,8 +269,7 @@ cartSubtotalEl.innerHTML = `
             </div>
             <div class="flex items-center gap-2">
               <button class="h-8 w-8 border rounded grid place-items-center" data-dec="${it.id}">-</button>
-     header
-     <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${it.id}">+</button>
+              <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${it.id}">+</button>
               <button class="h-8 w-8 border rounded grid place-items-center" data-del="${it.id}" title="Remove">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
@@ -300,8 +287,14 @@ cartSubtotalEl.innerHTML = `
             ${DISTRICTS.map((d) => `<option value="${d}">${d}</option>`).join("")}
           </select>
         </div>
-        <div class="flex items-center justify-between text-sm">
-          <span>Subtotal</span><span id="cartSubtotal">${BDT(subtotal)}</span>
+        <div class="flex justify-between text-sm">
+          <span>Subtotal</span><span>${BDT(subtotal)}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span>Delivery</span><span>${BDT(deliveryCost)}</span>
+        </div>
+        <div class="flex justify-between font-semibold">
+          <span>Total</span><span>${BDT(total)}</span>
         </div>
         <button class="w-full bg-black text-white rounded-lg h-11">Checkout</button>
       </div>
@@ -326,11 +319,11 @@ cartSubtotalEl.innerHTML = `
   cartDistrict.addEventListener("change", (e) => {
     DISTRICT = e.target.value;
     saveAll();
+    renderCart(); // re-render to update delivery cost
   });
 
   lucide.createIcons();
 }
-
 // ---------- Bootstrap ----------
 (async function init() {
   // District select in header
