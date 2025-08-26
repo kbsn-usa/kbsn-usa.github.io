@@ -231,12 +231,17 @@ if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 // ================== DISTRICT ==================
 function renderDistricts() {
   if (!districtSelectEl) return;
-  districtSelectEl.innerHTML = allDistricts
-    .map((d) => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`)
-    .join("");
+
+  districtSelectEl.innerHTML = `
+    <option value="" disabled ${DISTRICT === "" ? "selected" : ""}>Deliver to</option>
+    ${allDistricts
+      .map((d) => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`)
+      .join("")}
+  `;
+
   districtSelectEl.addEventListener("change", (e) => {
     DISTRICT = e.target.value;
-    localStorage.setItem("bpc-DISTRICT", DISTRICT);
+    localStorage.setItem("bpc-DISTRICTS", DISTRICT); // fixed key name (your init used "bpc-DISTRICTS")
     renderCart();
   });
 }
