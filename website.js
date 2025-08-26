@@ -137,6 +137,7 @@ function addToCart(id) {
     CART.push({
       id: product.id,
       name: product.name,
+      image: product.image,
       price: product.price,
       weight: product.weight,
       qty: 1
@@ -145,15 +146,14 @@ function addToCart(id) {
   saveCart();
 }
 
-function removeFromCart(id) {
-  CART = CART.filter((i) => i.id !== id);
+function removeFromCart(index) {
+  CART.splice(index, 1);
   saveCart();
 }
 
-function updateQty(id, qty) {
-  const item = CART.find((i) => i.id === id);
-  if (item) {
-    item.qty = qty > 0 ? qty : 1;
+function updateQty(index, qty) {
+  if (CART[index]) {
+    CART[index].qty = qty > 0 ? qty : 1;
   }
   saveCart();
 }
@@ -177,24 +177,28 @@ function getDeliveryCost(totalWeight) {
 
 // ================== CART RENDER ==================
 function renderCart() {
-  const cartItemsContainer = document.getElementById("cart-items");
-  const emptyCart = document.getElementById("empty-cart");
-  const summary = document.getElementById("cart-summary");
+  if (!cartItemsEl) return;
 
-  cartItemsContainer.innerHTML = "";
+  cartItemsEl.innerHTML = "";
 
-  if (cart.length === 0) {
-    emptyCart.classList.remove("hidden");
-    summary.classList.add("hidden");
+  if (CART.length === 0) {
+    cartItemsEl.innerHTML = `<p class="text-gray-500 text-center py-6">Your cart is empty.</p>`;
+    cartSummaryEl.classList.add("hidden");
+    cartCountEl.textContent = "0";
     return;
   }
 
-  emptyCart.classList.add("hidden");
-  summary.classList.remove("hidden");
+  cartSummaryEl.classList.remove("hidden");
+  let subtotal = 0;
+  let totalWeight = 0;
 
-  cart.forEach((item, index) => {
+  CART.forEach((item, index) => {
+    subtotal += item.price * item.qty;
+    totalWeight += item.weight * item.qty;
+
     const div = document.createElement("div");
-    div.className = "flex items-center gap-4 p-3 border rounded-xl bg-white shadow-sm";
+    div.className =
+      "flex items-center gap-4 p-3 border rounded-xl bg-white shadow-sm mb-2";
 
     div.innerHTML = `
       <img src="${item.image}" alt="${item.name}" class="h-14 w-14 rounded-lg object-cover border" />
@@ -202,56 +206,35 @@ function renderCart() {
         <h4 class="font-medium text-sm">${item.name}</h4>
         <p class="text-xs text-neutral-500">৳${item.price} per unit</p>
         <div class="flex items-center gap-2 mt-2">
-          <button class="decrease px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300" data-index="${index}">–</button>
-          <span class="min-w-[24px] text-center">${item.quantity}</span>
-          <button class="increase px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300" data-index="${index}">+</button>
+          <button onclick="updateQty(${index}, ${item.qty - 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">–</button>
+          <span class="min-w-[24px] text-center">${item.qty}</span>
+          <button onclick="updateQty(${index}, ${item.qty + 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">+</button>
         </div>
       </div>
       <div class="flex flex-col items-end gap-2">
-        <span class="font-semibold">৳${item.price * item.quantity}</span>
-        <button class="remove text-red-500 hover:text-red-700" data-index="${index}">
+        <span class="font-semibold">৳${(item.price * item.qty).toLocaleString()}</span>
+        <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
           <i data-lucide="trash-2" class="h-4 w-4"></i>
         </button>
       </div>
     `;
 
-    cartItemsContainer.appendChild(div);
+    cartItemsEl.appendChild(div);
   });
 
+  const deliveryCost = getDeliveryCost(totalWeight);
+  const grandTotal = subtotal + deliveryCost;
+
+  cartSummaryEl.innerHTML = `
+    <div class="p-4 border-t space-y-2 text-sm">
+      <div class="flex justify-between"><span>Subtotal:</span><span>৳${subtotal.toLocaleString()}</span></div>
+      <div class="flex justify-between"><span>Delivery:</span><span>৳${deliveryCost.toLocaleString()}</span></div>
+      <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>৳${grandTotal.toLocaleString()}</span></div>
+    </div>
+  `;
+
+  cartCountEl.textContent = CART.reduce((sum, i) => sum + i.qty, 0);
   lucide.createIcons();
-  updateCartSummary();
-
-  // Add event listeners for buttons
-  document.querySelectorAll(".increase").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const index = e.target.dataset.index;
-      cart[index].quantity++;
-      saveCart();
-      renderCart();
-    });
-  });
-
-  document.querySelectorAll(".decrease").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const index = e.target.dataset.index;
-      if (cart[index].quantity > 1) {
-        cart[index].quantity--;
-      } else {
-        cart.splice(index, 1);
-      }
-      saveCart();
-      renderCart();
-    });
-  });
-
-  document.querySelectorAll(".remove").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      const index = e.target.dataset.index;
-      cart.splice(index, 1);
-      saveCart();
-      renderCart();
-    });
-  });
 }
 
 // ================== CART OPEN/CLOSE ==================
@@ -284,11 +267,11 @@ if (quotationFormEl) {
     emailjs
       .send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
       .then(
-        function () {
+        () => {
           alert("Quotation request sent successfully!");
           quotationFormEl.reset();
         },
-        function (error) {
+        (error) => {
           alert("Failed to send request. Please try again.");
           console.error(error);
         }
