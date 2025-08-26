@@ -315,6 +315,17 @@ if (insideDhaka) {
       </div>
     </div>
   `;
+  cartSubtotalEl.innerHTML = `
+  <div class="flex justify-between text-sm">
+    <span>Subtotal</span><span>${formatBDT(subtotal)}</span>
+  </div>
+  <div class="flex justify-between text-sm">
+    <span>Delivery (${totalWeight.toFixed(1)} kg)</span><span>${formatBDT(deliveryCost)}</span>
+  </div>
+  <div class="flex justify-between font-semibold">
+    <span>Total</span><span>${formatBDT(subtotal + deliveryCost)}</span>
+  </div>
+`;
 
   // wire controls
   cartDrawerEl.querySelector("#closeCartBtn").addEventListener("click", closeCart);
