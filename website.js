@@ -3,9 +3,19 @@
 // =======================
 
 // ---------- Config ----------
+// =======================
+// Districts of Bangladesh
+// =======================
 const DISTRICTS = [
-  "Dhaka","Chattogram","Gazipur","Narayanganj","Cumilla",
-  "Rajshahi","Khulna","Sylhet","Barishal","Rangpur",
+  "Bagerhat", "Bandarban", "Barguna", "Barishal", "Bhola", "Bogura", "Brahmanbaria", "Chandpur",
+  "Chapai Nawabganj", "Chattogram", "Chuadanga", "Cox's Bazar", "Cumilla", "Dhaka", "Dinajpur",
+  "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jashore",
+  "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram",
+  "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur",
+  "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi",
+  "Natore", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh", "Patuakhali",
+  "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur",
+  "Sherpur", "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"
 ];
 
 // ---------- State ----------
@@ -230,8 +240,26 @@ function removeFromCart(id) {
 function renderCart() {
   if (!cartDrawerEl) return;
 
-  const subtotal = CART.reduce((s, it) => s + (it.price || 0) * (it.qty || 0), 0);
+  const subtotal = cart.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
 
+// ✅ delivery rules
+const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(district);
+const deliveryCost = insideDhaka ? 150 : 200;
+const total = subtotal + deliveryCost;
+
+// ✅ update cart footer (always showing Delivery cost)
+cartSubtotalEl.innerHTML = `
+  <div class="flex justify-between text-sm">
+    <span>Subtotal</span><span>${formatBDT(subtotal)}</span>
+  </div>
+  <div class="flex justify-between text-sm">
+    <span>Delivery</span><span>${formatBDT(deliveryCost)}</span>
+  </div>
+  <div class="flex justify-between font-semibold">
+    <span>Total</span><span>${formatBDT(total)}</span>
+  </div>
+`;
+  
   cartDrawerEl.innerHTML = `
     <div class="h-full flex flex-col">
       <div class="flex items-center justify-between mb-4">
@@ -253,7 +281,8 @@ function renderCart() {
             </div>
             <div class="flex items-center gap-2">
               <button class="h-8 w-8 border rounded grid place-items-center" data-dec="${it.id}">-</button>
-              <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${it.id}">+</button>
+     header
+     <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${it.id}">+</button>
               <button class="h-8 w-8 border rounded grid place-items-center" data-del="${it.id}" title="Remove">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
@@ -305,6 +334,12 @@ function renderCart() {
 // ---------- Bootstrap ----------
 (async function init() {
   // District select in header
+
+// Populate district dropdown
+districtSelectEl.innerHTML = DISTRICTS
+  .map(d => `<option value="${d}" ${d === district ? "selected" : ""}>${d}</option>`)
+  .join("");
+  
   if (districtEl) {
     districtEl.innerHTML = DISTRICTS.map((d) => `<option value="${d}">${d}</option>`).join("");
     districtEl.value = DISTRICT;
