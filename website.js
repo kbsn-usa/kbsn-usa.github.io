@@ -2,253 +2,342 @@
 // BPC Website JavaScript
 // =======================
 
-// Elements
-const productsEl = document.getElementById("productsGrid");
-const cartItemsEl = document.getElementById("cart-items");
-const cartSubtotalEl = document.getElementById("cart-subtotal");
+// ---------- Config ----------
+const DISTRICTS = [
+  "Dhaka","Chattogram","Gazipur","Narayanganj","Cumilla",
+  "Rajshahi","Khulna","Sylhet","Barishal","Rangpur",
+];
+
+// ---------- State ----------
+let PRODUCTS = [];
+let FILTER = { category: "all", query: "" };
+let DISTRICT = localStorage.getItem("bpc-district") || "Dhaka";
+let CART = JSON.parse(localStorage.getItem("bpc-cart") || "[]");
+
+// ---------- DOM ----------
+const gridEl = document.getElementById("productsGrid");
+const pillsEl = document.getElementById("categoryPills");
+const searchEl = document.getElementById("searchInput");
+const districtEl = document.getElementById("districtSelect");
 const cartCountEl = document.getElementById("cartCount");
-const categoryPillsEl = document.getElementById("categoryPills");
-const searchInputEl = document.getElementById("searchInput");
-const districtSelectEl = document.getElementById("districtSelect");
 const detailsSheetEl = document.getElementById("detailsSheet");
+const cartDrawerEl = document.getElementById("cartDrawer");
+const openCartBtn = document.getElementById("openCartBtn");
 
-// Cart state
-let cart = JSON.parse(localStorage.getItem("bpc-cart")) || [];
-let district = localStorage.getItem("bpc-district") || "Dhaka";
-let productsData = [];
+// ---------- Utils ----------
+const BDT = (n) =>
+  `৳${(n ?? 0).toLocaleString("en-BD", { maximumFractionDigits: 0 })}`;
 
-// =======================
-// Utility Functions
-// =======================
+const leadTimeLabel = (days) => {
+  const d = Number(days || 2);
+  if (d <= 1) return "Tomorrow";
+  if (d === 2) return "In 2 days";
+  return `${d} days`;
+};
 
-function formatBDT(amount) {
-  return `৳${amount.toLocaleString("en-BD")}`;
-}
-
-function saveCart() {
-  localStorage.setItem("bpc-cart", JSON.stringify(cart));
-  localStorage.setItem("bpc-district", district);
+function saveAll() {
+  localStorage.setItem("bpc-district", DISTRICT);
+  localStorage.setItem("bpc-cart", JSON.stringify(CART));
 }
 
 function cartItemCount() {
-  return cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+  return CART.reduce((s, it) => s + (it.qty || 0), 0);
 }
 
-// =======================
-// Product Rendering
-// =======================
+function setCartCount() {
+  if (cartCountEl) cartCountEl.textContent = String(cartItemCount());
+}
+
+// ---------- Products ----------
+function categoryListFromProducts() {
+  const set = new Set(PRODUCTS.map((p) => p.category).filter(Boolean));
+  return ["all", ...Array.from(set)];
+}
+
+function renderCategoryPills() {
+  const cats = categoryListFromProducts();
+  pillsEl.innerHTML = cats
+    .map(
+      (c) => `
+      <button data-cat="${c}"
+        class="px-3 py-1 rounded-full border text-sm ${
+          FILTER.category === c ? "bg-black text-white border-black" : "bg-neutral-100"
+        }">
+        ${c[0].toUpperCase()}${c.slice(1)}
+      </button>`
+    )
+    .join("");
+
+  pillsEl.querySelectorAll("[data-cat]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      FILTER.category = btn.dataset.cat;
+      renderCategoryPills();
+      renderProducts();
+    })
+  );
+}
 
 function productCard(p) {
   return `
-    <div class="border rounded-xl p-4 flex flex-col shadow-sm">
-      <div class="h-32 bg-gray-100 mb-2 rounded-md bg-center bg-cover" 
-           style="background-image: url('${p.image}')"></div>
-      <h3 class="font-semibold text-sm line-clamp-2">${p.name}</h3>
-      <div class="text-xs text-neutral-500">${p.brand || ""}</div>
-      <div class="text-xs text-neutral-500">Unit: ${p.unit || ""}</div>
-      <div class="font-bold mt-1">${formatBDT(p.price)}</div>
-      <div class="mt-auto flex gap-2 pt-2">
-        <button class="flex-1 bg-blue-600 text-white py-1 rounded text-sm" data-add="${p.id}">Add to Cart</button>
-        <button class="px-2 py-1 border rounded text-sm" data-detail="${p.id}">Details</button>
+  <div class="bg-white rounded-xl border overflow-hidden hover:shadow-sm transition flex flex-col h-full">
+    <div class="h-40 w-full bg-center bg-cover" style="background-image:url('${p.image}')" data-detail="${p.id}"></div>
+    <div class="p-4 flex flex-col gap-2 flex-1">
+      <div class="flex-1">
+        <div class="font-semibold leading-snug line-clamp-2">${p.name}</div>
+        <div class="text-xs text-neutral-500">${p.brand ?? ""}</div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-lg font-bold">${BDT(p.price)}</div>
+          <div class="text-xs text-neutral-500">${p.unit ?? ""}</div>
+        </div>
+        <div class="text-xs text-neutral-600 flex items-center gap-1">
+          <i data-lucide="truck" class="w-4 h-4"></i>${leadTimeLabel(p.leadTimeDays)}
+        </div>
+      </div>
+      <div class="mt-1 flex gap-2">
+        <button class="flex-1 bg-black text-white rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2" data-add="${p.id}">
+          <i data-lucide="shopping-cart" class="w-4 h-4"></i> Add
+        </button>
+        <button class="border rounded-lg px-3 py-2 h-10 flex items-center justify-center gap-2" data-detail="${p.id}">
+          <i data-lucide="info" class="w-4 h-4"></i> Details
+        </button>
       </div>
     </div>
-  `;
+  </div>`;
 }
 
-function renderProducts(category = "all", query = "") {
-  let filtered = productsData;
+function renderProducts() {
+  let items = PRODUCTS.slice();
 
-  if (category !== "all") {
-    filtered = filtered.filter(p => p.category === category);
+  if (FILTER.category && FILTER.category !== "all") {
+    items = items.filter((p) => p.category === FILTER.category);
   }
-  if (query) {
-    filtered = filtered.filter(p =>
-      p.name.toLowerCase().includes(query.toLowerCase())
+  const q = (FILTER.query || "").toLowerCase().trim();
+  if (q) {
+    items = items.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(q) ||
+        p.brand?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q)
     );
   }
 
-  if (!filtered.length) {
-    productsEl.innerHTML = `<div class="text-center text-neutral-500 py-10">No products found.</div>`;
-    return;
+  if (!items.length) {
+    gridEl.innerHTML =
+      '<div class="col-span-full text-center text-neutral-500 py-10">No products found.</div>';
+  } else {
+    gridEl.innerHTML = items.map(productCard).join("");
   }
 
-  productsEl.innerHTML = `
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      ${filtered.map(productCard).join("")}
+  // attach handlers
+  gridEl.querySelectorAll("[data-add]").forEach((btn) =>
+    btn.addEventListener("click", () => addToCartById(btn.dataset.add))
+  );
+  gridEl.querySelectorAll("[data-detail]").forEach((btn) =>
+    btn.addEventListener("click", () => openDetails(btn.dataset.detail))
+  );
+
+  lucide.createIcons();
+}
+
+// ---------- Details Sheet ----------
+function openDetails(productId) {
+  const p = PRODUCTS.find((x) => String(x.id) === String(productId));
+  if (!p || !detailsSheetEl) return;
+
+  detailsSheetEl.classList.remove("hidden");
+  detailsSheetEl.innerHTML = `
+    <div class="h-full w-full max-w-xl ml-auto bg-white p-6 overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">Product Details</h2>
+        <button class="border rounded px-2 py-1 text-sm" id="closeDetailsBtn">Close</button>
+      </div>
+
+      <div class="w-full h-48 bg-center bg-cover rounded-lg mb-4" style="background-image:url('${p.image}')"></div>
+      <h3 class="text-2xl font-bold">${p.name}</h3>
+      <div class="text-sm text-neutral-500">${p.brand ?? ""} ${p.unit ? "• " + p.unit : ""}</div>
+
+      <div class="mt-3 text-xl font-semibold">${BDT(p.price)}</div>
+      <div class="text-sm text-neutral-600">Lead time: ${leadTimeLabel(p.leadTimeDays)}</div>
+      <div class="text-sm text-neutral-600">Origin: ${p.origin ?? "-"}</div>
+      <div class="text-sm text-neutral-600">Quality: ${p.quality ?? "Standard"}</div>
+
+      <div class="mt-5">
+        <button class="bg-black text-white rounded-lg px-4 py-2" id="detailsAddBtn">Add to Cart</button>
+      </div>
     </div>
   `;
 
-  // Add to cart handlers
-  productsEl.querySelectorAll("[data-add]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      addToCart(btn.dataset.add);
-    });
+  detailsSheetEl.querySelector("#closeDetailsBtn").addEventListener("click", closeDetails);
+  detailsSheetEl.querySelector("#detailsAddBtn").addEventListener("click", () => {
+    addToCartById(p.id);
+    closeDetails();
+    openCart(); // optional UX
   });
 
-  // Product details handlers
-  productsEl.querySelectorAll("[data-detail]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      showProductDetails(btn.dataset.detail);
-    });
-  });
+  lucide.createIcons();
 }
 
-// =======================
-// Cart Functions
-// =======================
+function closeDetails() {
+  detailsSheetEl.classList.add("hidden");
+  detailsSheetEl.innerHTML = "";
+}
 
-function addToCart(productId) {
-  const existing = cart.find(it => it.id === productId);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    const product = productsData.find(p => p.id === productId);
-    if (product) cart.push({ ...product, qty: 1 });
+// ---------- Cart Drawer ----------
+function openCart() {
+  if (!cartDrawerEl) return;
+  cartDrawerEl.classList.remove("hidden");
+  renderCart();
+}
+
+function closeCart() {
+  if (!cartDrawerEl) return;
+  cartDrawerEl.classList.add("hidden");
+  cartDrawerEl.innerHTML = ""; // optional cleanup
+}
+
+function addToCartById(id) {
+  const p = PRODUCTS.find((x) => String(x.id) === String(id));
+  if (!p) return;
+  const existing = CART.find((x) => String(x.id) === String(id));
+  if (existing) existing.qty += 1;
+  else CART.push({ ...p, qty: 1 });
+  saveAll();
+  setCartCount();
+  renderCart(); // refresh drawer if open
+}
+
+function updateQty(id, delta) {
+  const it = CART.find((x) => String(x.id) === String(id));
+  if (!it) return;
+  it.qty += delta;
+  if (it.qty <= 0) {
+    CART = CART.filter((x) => String(x.id) !== String(id));
   }
+  saveAll();
+  setCartCount();
+  renderCart();
+}
+
+function removeFromCart(id) {
+  CART = CART.filter((x) => String(x.id) !== String(id));
+  saveAll();
+  setCartCount();
   renderCart();
 }
 
 function renderCart() {
-  if (!cart.length) {
-    cartItemsEl.innerHTML = `<div class="text-sm text-neutral-500">Cart is empty.</div>`;
-    cartSubtotalEl.textContent = formatBDT(0);
-    cartCountEl.textContent = "0";
-    saveCart();
-    return;
-  }
+  if (!cartDrawerEl) return;
 
-  cartItemsEl.innerHTML = cart.map(item => `
-    <div class="border rounded-xl">
-      <div class="p-3 flex items-center gap-3">
-        <div class="h-14 w-14 rounded bg-cover bg-center" style="background-image:url('${item.image}')"></div>
-        <div class="flex-1">
-          <div class="text-sm font-medium line-clamp-1">${item.name}</div>
-          <div class="text-xs text-neutral-500">${item.qty} × ${formatBDT(item.price)} ${item.unit ? `(${item.unit})` : ""}</div>
+  const subtotal = CART.reduce((s, it) => s + (it.price || 0) * (it.qty || 0), 0);
+
+  cartDrawerEl.innerHTML = `
+    <div class="h-full flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">Your Cart</h2>
+        <button class="border rounded px-2 py-1 text-sm" id="closeCartBtn">Close</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-3" id="cartItems">
+        ${
+          CART.length
+            ? CART.map(
+                (it) => `
+          <div class="border rounded-xl p-3 flex items-center gap-3">
+            <div class="h-14 w-14 rounded bg-center bg-cover" style="background-image:url('${it.image}')"></div>
+            <div class="flex-1">
+              <div class="text-sm font-medium line-clamp-1">${it.name}</div>
+              <div class="text-xs text-neutral-500">${it.unit ?? ""}</div>
+              <div class="text-xs text-neutral-500">${BDT(it.price)} × ${it.qty}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="h-8 w-8 border rounded grid place-items-center" data-dec="${it.id}">-</button>
+              <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${it.id}">+</button>
+              <button class="h-8 w-8 border rounded grid place-items-center" data-del="${it.id}" title="Remove">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>`
+              ).join("")
+            : `<div class="text-sm text-neutral-500">Cart is empty.</div>`
+        }
+      </div>
+
+      <div class="border-t pt-4 mt-4 space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span>Deliver to</span>
+          <select id="cartDistrict" class="h-9 border rounded px-2">
+            ${DISTRICTS.map((d) => `<option value="${d}">${d}</option>`).join("")}
+          </select>
         </div>
-        <div class="flex items-center gap-2">
-          <button class="h-8 w-8 border rounded grid place-items-center" data-dec="${item.id}">-</button>
-          <button class="h-8 w-8 border rounded grid place-items-center" data-inc="${item.id}">+</button>
-          <button class="h-8 w-8 border rounded grid place-items-center" data-del="${item.id}">🗑</button>
+        <div class="flex items-center justify-between text-sm">
+          <span>Subtotal</span><span id="cartSubtotal">${BDT(subtotal)}</span>
         </div>
+        <button class="w-full bg-black text-white rounded-lg h-11">Checkout</button>
       </div>
     </div>
-  `).join("");
-
-  const subtotal = cart.reduce((sum, it) => sum + (it.price || 0) * (it.qty || 0), 0);
-
-  // Delivery rule
-  const insideDhaka = ["Dhaka", "Gazipur", "Narayanganj"].includes(district);
-  const deliveryCost = insideDhaka ? 150 : 200;
-  const total = subtotal + deliveryCost;
-
-  cartSubtotalEl.innerHTML = `
-    <div class="flex justify-between text-sm">
-      <span>Subtotal</span><span>${formatBDT(subtotal)}</span>
-    </div>
-    <div class="flex justify-between text-sm">
-      <span>Delivery</span><span>${formatBDT(deliveryCost)}</span>
-    </div>
-    <div class="flex justify-between font-semibold">
-      <span>Total</span><span>${formatBDT(total)}</span>
-    </div>
   `;
 
-  cartCountEl.textContent = String(cartItemCount());
+  // wire controls
+  cartDrawerEl.querySelector("#closeCartBtn").addEventListener("click", closeCart);
 
-  // Quantity controls
-  cartItemsEl.querySelectorAll("[data-inc]").forEach(btn =>
-    btn.addEventListener("click", () => {
-      const item = cart.find(it => it.id === btn.dataset.inc);
-      if (item) item.qty += 1;
-      renderCart();
-    })
+  cartDrawerEl.querySelectorAll("[data-inc]").forEach((b) =>
+    b.addEventListener("click", () => updateQty(b.dataset.inc, +1))
   );
-  cartItemsEl.querySelectorAll("[data-dec]").forEach(btn =>
-    btn.addEventListener("click", () => {
-      const item = cart.find(it => it.id === btn.dataset.dec);
-      if (item && item.qty > 1) item.qty -= 1;
-      else cart = cart.filter(it => it.id !== btn.dataset.dec);
-      renderCart();
-    })
+  cartDrawerEl.querySelectorAll("[data-dec]").forEach((b) =>
+    b.addEventListener("click", () => updateQty(b.dataset.dec, -1))
   );
-  cartItemsEl.querySelectorAll("[data-del]").forEach(btn =>
-    btn.addEventListener("click", () => {
-      cart = cart.filter(it => it.id !== btn.dataset.del);
-      renderCart();
-    })
+  cartDrawerEl.querySelectorAll("[data-del]").forEach((b) =>
+    b.addEventListener("click", () => removeFromCart(b.dataset.del))
   );
 
-  saveCart();
+  const cartDistrict = cartDrawerEl.querySelector("#cartDistrict");
+  cartDistrict.value = DISTRICT;
+  cartDistrict.addEventListener("change", (e) => {
+    DISTRICT = e.target.value;
+    saveAll();
+  });
+
+  lucide.createIcons();
 }
 
-// =======================
-// Product Details Modal
-// =======================
-
-function showProductDetails(productId) {
-  const product = productsData.find(p => p.id === productId);
-  if (!product || !detailsSheetEl) return;
-
-  detailsSheetEl.classList.remove("hidden");
-  detailsSheetEl.innerHTML = `
-    <div class="p-4 max-w-md mx-auto bg-white rounded-2xl shadow-lg">
-      <button onclick="closeDetails()" class="mb-3 text-sm text-neutral-500">✕ Close</button>
-      <img src="${product.image}" class="w-full h-48 object-cover rounded mb-3" />
-      <h2 class="text-xl font-bold mb-1">${product.name}</h2>
-      <p class="text-sm text-neutral-500 mb-1">Brand: ${product.brand || "-"}</p>
-      <p class="text-sm text-neutral-500 mb-1">Origin: ${product.origin || "-"}</p>
-      <p class="text-sm text-neutral-500 mb-1">Quality: ${product.quality || "-"}</p>
-      <p class="text-sm text-neutral-500 mb-3">Lead Time: ${product.leadTimeDays || "N/A"} days</p>
-      <div class="font-bold text-emerald-600 mb-4">${formatBDT(product.price)} / ${product.unit || ""}</div>
-      <button onclick="addToCart('${product.id}')" class="bg-blue-600 text-white rounded px-4 py-2">
-        Add to Cart
-      </button>
-    </div>
-  `;
-}
-
-function closeDetails() {
-  if (detailsSheetEl) detailsSheetEl.classList.add("hidden");
-}
-
-// =======================
-// Init
-// =======================
-
-async function init() {
-  try {
-    const res = await fetch("/data/products.json");
-    productsData = await res.json();
-
-    // Render categories
-    const categories = ["all", ...new Set(productsData.map(p => p.category))];
-    categoryPillsEl.innerHTML = categories
-      .map(c => `<button class="px-3 py-1 border rounded text-sm" data-cat="${c}">${c}</button>`)
-      .join("");
-
-    categoryPillsEl.querySelectorAll("[data-cat]").forEach(btn =>
-      btn.addEventListener("click", () => renderProducts(btn.dataset.cat, searchInputEl.value))
-    );
-
-    // Search
-    searchInputEl.addEventListener("input", () => {
-      renderProducts("all", searchInputEl.value);
+// ---------- Bootstrap ----------
+(async function init() {
+  // District select in header
+  if (districtEl) {
+    districtEl.innerHTML = DISTRICTS.map((d) => `<option value="${d}">${d}</option>`).join("");
+    districtEl.value = DISTRICT;
+    districtEl.addEventListener("change", (e) => {
+      DISTRICT = e.target.value;
+      saveAll();
     });
-
-    // District select
-    districtSelectEl.value = district;
-    districtSelectEl.addEventListener("change", e => {
-      district = e.target.value;
-      saveCart();
-      renderCart();
-    });
-
-    // Initial render
-    renderProducts();
-    renderCart();
-  } catch (err) {
-    console.error("Error initializing site:", err);
   }
-}
 
-init();
+  // Search
+  if (searchEl) {
+    searchEl.addEventListener("input", (e) => {
+      FILTER.query = e.target.value || "";
+      renderProducts();
+    });
+  }
+
+  // Cart open button
+  if (openCartBtn) {
+    openCartBtn.addEventListener("click", openCart);
+  }
+
+  // Load products
+  try {
+    const res = await fetch("data/products.json");
+    PRODUCTS = await res.json();
+  } catch (e) {
+    console.error("Failed to load products.json", e);
+    PRODUCTS = [];
+  }
+
+  renderCategoryPills();
+  renderProducts();
+  setCartCount();
+  lucide.createIcons();
+})();
