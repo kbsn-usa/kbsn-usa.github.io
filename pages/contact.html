@@ -7,33 +7,60 @@
   <meta name="description" content="Get in touch with BPC – Building Procurement Construction for inquiries, support, and orders.">
   <link rel="icon" href="../assets/logo.webp" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
+  <!-- Header -->
   <header class="bg-white shadow-md">
     <div class="container mx-auto flex items-center justify-between p-4">
       <a href="../index.html"><img src="../assets/logo.webp" alt="BPC Logo" class="h-10"></a>
       <nav class="space-x-6">
-        <a href="../index.html">Home</a>
-        <a href="about.html">About</a>
-        <a href="services.html">Services</a>
+        <a href="../index.html" class="hover:text-blue-600">Home</a>
+        <a href="about.html" class="hover:text-blue-600">About</a>
+        <a href="services.html" class="hover:text-blue-600">Services</a>
+        <a href="suppliers.html" class="hover:text-blue-600">Suppliers</a>
         <a href="contact.html" class="font-semibold text-blue-600">Contact</a>
       </nav>
     </div>
   </header>
 
-  <main class="container mx-auto py-16 text-center">
-    <h1 class="text-3xl font-bold mb-4">Contact Us</h1>
-    <p class="mb-8">Have questions? Reach out to us via the form below.</p>
-    <form class="max-w-lg mx-auto bg-white p-6 shadow rounded-lg space-y-4">
-      <input type="text" placeholder="Your Name" class="w-full border p-3 rounded" required>
-      <input type="email" placeholder="Your Email" class="w-full border p-3 rounded" required>
-      <textarea placeholder="Your Message" class="w-full border p-3 rounded" rows="5" required></textarea>
-      <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">Send Message</button>
-    </form>
+  <!-- Main -->
+  <main class="container mx-auto py-16 px-6">
+    <h1 class="text-4xl font-bold text-center mb-6">Contact Us</h1>
+    <p class="text-center text-gray-600 mb-12">Have questions? Reach out to us—we’re here to help.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Contact Info -->
+      <div class="bg-white rounded-2xl shadow p-8">
+        <h2 class="text-2xl font-semibold mb-6">Get in Touch</h2>
+        <p class="text-gray-600 mb-4 flex items-center gap-2">
+          <i data-feather="map-pin" class="text-blue-600"></i> Dhaka, Bangladesh
+        </p>
+        <p class="text-gray-600 mb-4 flex items-center gap-2">
+          <i data-feather="phone" class="text-blue-600"></i> +880 1234 567890
+        </p>
+        <p class="text-gray-600 mb-4 flex items-center gap-2">
+          <i data-feather="mail" class="text-blue-600"></i> info@bpcproc.com
+        </p>
+      </div>
+
+      <!-- Form -->
+      <form class="bg-white rounded-2xl shadow p-8 space-y-4">
+        <input type="text" placeholder="Your Name" class="w-full border p-3 rounded" required>
+        <input type="email" placeholder="Your Email" class="w-full border p-3 rounded" required>
+        <textarea placeholder="Your Message" class="w-full border p-3 rounded" rows="5" required></textarea>
+        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">Send Message</button>
+      </form>
+    </div>
   </main>
 
-  <footer class="bg-gray-900 text-gray-300 py-6 text-center">
-    <p>&copy; 2025 BPC. All rights reserved.</p>
+  <!-- Footer -->
+  <footer class="bg-white border-t mt-16">
+    <div class="container mx-auto text-center py-6 text-gray-600 text-sm">
+      © 2025 BPC – All rights reserved.
+    </div>
   </footer>
+
+  <script>feather.replace();</script>
 </body>
 </html>
