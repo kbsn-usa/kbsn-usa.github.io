@@ -296,15 +296,15 @@ if (contactFormEl) {
     e.preventDefault();
 
     const templateParams = {
-      name: document.getElementById("cName").value,
-      email: document.getElementById("cEmail").value,
-      phone: document.getElementById("cPhone").value,
-      subject: document.getElementById("cSubject").value,
-      message: document.getElementById("cMessage").value,
+      name: document.getElementById("qName").value,
+      email: document.getElementById("qEmail").value,
+      phone: document.getElementById("qPhone").value,
+      address: document.getElementById("qAddress").value,
+      message: document.getElementById("qMessage").value,
     };
 
     emailjs
-      .send("service_bpcproc_2025", "template_bpcproc_contact", templateParams)
+      .send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
       .then(
         () => {
           alert("Message sent successfully!");
