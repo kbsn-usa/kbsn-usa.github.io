@@ -16,4 +16,8 @@
     <loc>https://bpcproc.com/pages/contact.html</loc>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://bpcproc.com/pages/suppliers.html</loc>
+    <priority>0.8</priority>
+  </url>
 </urlset>
