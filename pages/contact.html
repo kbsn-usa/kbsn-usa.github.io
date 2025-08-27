@@ -8,6 +8,7 @@
   <link rel="icon" href="../assets/logo.webp" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
   <!-- Header -->
@@ -44,53 +45,73 @@
         </p>
       </div>
 
-      <!-- Form -->
+      <!-- Contact Form -->
       <form id="contactForm" class="space-y-4 bg-white shadow-lg rounded-2xl p-6">
-  <div>
-    <label class="block text-sm font-medium">Name</label>
-    <input id="qName" type="text" required class="w-full border rounded-lg p-2">
-  </div>
-  <div>
-    <label class="block text-sm font-medium">Email</label>
-    <input id="qEmail" type="email" required class="w-full border rounded-lg p-2">
-  </div>
-  <div>
-    <label class="block text-sm font-medium">Your Phone Number</label>
-    <input id="qPhone" type="text" class="w-full border rounded-lg p-2">
-  </div>
-  <div>
-    <label class="block text-sm font-medium">Your Address</label>
-    <input id="qAddress" type="text" required class="w-full border rounded-lg p-2">
-  </div>
-  <div>
-    <label class="block text-sm font-medium"> Tpye Your Message Here.</label>
-    <textarea id="qMessage" rows="4" required class="w-full border rounded-lg p-2"></textarea>
-  </div>
-  <button type="submit" class="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800">
-    Send Message
-  </button>
-</form>
+        <div>
+          <label for="qName" class="block text-sm font-medium">Name</label>
+          <input id="qName" type="text" required class="w-full border rounded-lg p-2">
+        </div>
+        <div>
+          <label for="qEmail" class="block text-sm font-medium">Email</label>
+          <input id="qEmail" type="email" required class="w-full border rounded-lg p-2">
+        </div>
+        <div>
+          <label for="qPhone" class="block text-sm font-medium">Phone Number</label>
+          <input id="qPhone" type="text" class="w-full border rounded-lg p-2">
+        </div>
+        <div>
+          <label for="qAddress" class="block text-sm font-medium">Address</label>
+          <input id="qAddress" type="text" required class="w-full border rounded-lg p-2">
+        </div>
+        <div>
+          <label for="qMessage" class="block text-sm font-medium">Message</label>
+          <textarea id="qMessage" rows="4" required class="w-full border rounded-lg p-2"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+          Send Message
+        </button>
+      </form>
     </div>
   </main>
 
   <!-- Footer -->
   <footer class="bg-white border-t mt-16">
     <div class="container mx-auto text-center py-6 text-gray-600 text-sm">
-      © 2025 BPC – All rights reserved.
+      © <span id="year"></span> BPC – All rights reserved.
     </div>
   </footer>
+
   <!-- Scripts -->
-  <script src="website.js"></script>
   <script>
-    lucide.createIcons();
+    feather.replace();
     document.getElementById("year").textContent = new Date().getFullYear();
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    (function(){
-      emailjs.init("fpDzznXzakdQE1aQh");
+
+    // Init EmailJS
+    (function() {
+      emailjs.init("fpDzznXzakdQE1aQh"); // Your public key
     })();
+
+    // Contact form submit
+    document.getElementById("contactForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const templateParams = {
+        name: document.getElementById("qName").value,
+        email: document.getElementById("qEmail").value,
+        phone: document.getElementById("qPhone").value,
+        address: document.getElementById("qAddress").value,
+        message: document.getElementById("qMessage").value
+      };
+
+      emailjs.send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
+        .then(() => {
+          alert("✅ Your message has been sent successfully!");
+          document.getElementById("contactForm").reset();
+        }, (err) => {
+          console.error("EmailJS error:", err);
+          alert("❌ Failed to send message. Please try again.");
+        });
+    });
   </script>
-  <script>feather.replace();</script>
 </body>
 </html>
