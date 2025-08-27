@@ -123,9 +123,17 @@
           <input id="qAddress" name="qAddress" type="text" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Address" required />
           <input id="qEmail" name="qEmail" type="email" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Email" required>
           <textarea id="qMessage" name="qMessage" class="w-full col-span-2 border p-2 rounded-xl px-3 py-2 h-32 focus:ring-2 focus:ring-emerald-500 transition" placeholder="List items, quantities, etc." required></textarea>
-          <button type="submit" class="col-span-2 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-xl px-4 py-3 h-12 font-semibold shadow hover:opacity-90 transition">
-            Request Quotation
-          </button>
+          <button id="qSubmitBtn" type="submit"
+  class="col-span-2 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-xl px-4 py-3 h-12 font-semibold shadow hover:opacity-90 transition flex items-center justify-center gap-2">
+  <span id="qBtnText">Request Quotation</span>
+  <svg id="qBtnSpinner" class="hidden animate-spin h-5 w-5 text-white"
+    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10"
+      stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor"
+      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+  </svg>
+</button>
         </form>
       </div>
     </section>
@@ -235,35 +243,68 @@
       emailjs.init("fpDzznXzakdQE1aQh"); // Your EmailJS Public Key
     })();
 
-    // Quotation form handler
-    document.getElementById("quotationForm").addEventListener("submit", function(e){
-      e.preventDefault();
+    // Toast function (same as contact page)
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `px-4 py-3 rounded-lg shadow-lg text-white animate-slide-in 
+    ${type === "success" ? "bg-green-600" : "bg-red-600"}`;
+  toast.innerText = message;
 
-      emailjs.send("service_bpcproc_2025", "template_bpcproc_request", {
-        name: document.getElementById("qName").value,
-        phone: document.getElementById("qPhone").value,
-        address: document.getElementById("qAddress").value,
-        email: document.getElementById("qEmail").value,
-        message: document.getElementById("qMessage").value
-      }).then(function() {
-        Toastify({
-          text: "Quotation request sent ✅",
-          duration: 3000,
-          gravity: "top",
-          position: "right",
-          backgroundColor: "#10b981"
-        }).showToast();
-        document.getElementById("quotationForm").reset();
-      }, function(error) {
-        Toastify({
-          text: "Failed to send ❌ Please try again.",
-          duration: 3000,
-          gravity: "top",
-          position: "right",
-          backgroundColor: "#ef4444"
-        }).showToast();
-      });
-    });
+  document.getElementById("toast-container").appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("opacity-0", "translate-x-5");
+    setTimeout(() => toast.remove(), 500);
+  }, 3000);
+}
+
+// Animation CSS
+const style = document.createElement("style");
+style.innerHTML = `
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-out;
+  }
+`;
+document.head.appendChild(style);
+
+// Quotation form handler
+const qForm = document.getElementById("quotationForm");
+const qSubmitBtn = document.getElementById("qSubmitBtn");
+const qBtnText = document.getElementById("qBtnText");
+const qBtnSpinner = document.getElementById("qBtnSpinner");
+
+qForm.addEventListener("submit", function(e){
+  e.preventDefault();
+
+  // Show spinner
+  qBtnText.textContent = "Sending...";
+  qBtnSpinner.classList.remove("hidden");
+  qSubmitBtn.disabled = true;
+
+  emailjs.send("service_bpcproc_2025", "template_bpcproc_request", {
+    name: document.getElementById("qName").value,
+    phone: document.getElementById("qPhone").value,
+    address: document.getElementById("qAddress").value,
+    email: document.getElementById("qEmail").value,
+    message: document.getElementById("qMessage").value
+  }).then(function() {
+    showToast("✅ Quotation request sent!", "success");
+    qForm.reset();
+  }).catch(function(error) {
+    console.error("EmailJS error:", error);
+    showToast("❌ Failed to send quotation. Try again.", "error");
+  }).finally(() => {
+    // Reset button
+    qBtnText.textContent = "Request Quotation";
+    qBtnSpinner.classList.add("hidden");
+    qSubmitBtn.disabled = false;
+  });
+});
   </script>
+  <div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
 </body>
 </html>
