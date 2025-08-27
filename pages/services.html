@@ -7,40 +7,54 @@
   <meta name="description" content="Discover BPC services – building material procurement, pricing transparency, and delivery solutions for your construction needs.">
   <link rel="icon" href="../assets/logo.webp" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
+  <!-- Header -->
   <header class="bg-white shadow-md">
     <div class="container mx-auto flex items-center justify-between p-4">
       <a href="../index.html"><img src="../assets/logo.webp" alt="BPC Logo" class="h-10"></a>
       <nav class="space-x-6">
-        <a href="../index.html">Home</a>
-        <a href="about.html">About</a>
+        <a href="../index.html" class="hover:text-blue-600">Home</a>
+        <a href="about.html" class="hover:text-blue-600">About</a>
         <a href="services.html" class="font-semibold text-blue-600">Services</a>
-        <a href="contact.html">Contact</a>
+        <a href="suppliers.html" class="hover:text-blue-600">Suppliers</a>
+        <a href="contact.html" class="hover:text-blue-600">Contact</a>
       </nav>
     </div>
   </header>
 
-  <main class="container mx-auto py-16">
-    <h1 class="text-3xl font-bold mb-6 text-center">Our Services</h1>
+  <!-- Main -->
+  <main class="container mx-auto py-16 px-6">
+    <h1 class="text-4xl font-bold text-center mb-6">Our Services</h1>
+    <p class="text-center text-gray-600 mb-12">We provide everything you need for smooth and efficient construction procurement.</p>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="bg-white p-6 shadow rounded-lg">
-        <h3 class="text-xl font-semibold mb-3">Material Procurement</h3>
-        <p>Order cement, bricks, rods, tiles, sanitary, cables and more—all in one place.</p>
+      <div class="bg-white rounded-2xl shadow hover:shadow-lg transition p-8 text-center">
+        <i data-feather="shopping-cart" class="w-10 h-10 text-blue-600 mx-auto mb-4"></i>
+        <h3 class="text-xl font-semibold mb-2">Material Procurement</h3>
+        <p class="text-gray-600">Order cement, bricks, rods, tiles, sanitary, cables and more—all in one place.</p>
       </div>
-      <div class="bg-white p-6 shadow rounded-lg">
-        <h3 class="text-xl font-semibold mb-3">Transparent Pricing</h3>
-        <p>Get instant price quotes with clear delivery costs before you confirm.</p>
+      <div class="bg-white rounded-2xl shadow hover:shadow-lg transition p-8 text-center">
+        <i data-feather="credit-card" class="w-10 h-10 text-blue-600 mx-auto mb-4"></i>
+        <h3 class="text-xl font-semibold mb-2">Transparent Pricing</h3>
+        <p class="text-gray-600">Get instant price quotes with clear delivery costs before you confirm.</p>
       </div>
-      <div class="bg-white p-6 shadow rounded-lg">
-        <h3 class="text-xl font-semibold mb-3">Professional Support</h3>
-        <p>Our experts guide individuals, contractors, and companies for bulk orders.</p>
+      <div class="bg-white rounded-2xl shadow hover:shadow-lg transition p-8 text-center">
+        <i data-feather="headphones" class="w-10 h-10 text-blue-600 mx-auto mb-4"></i>
+        <h3 class="text-xl font-semibold mb-2">Professional Support</h3>
+        <p class="text-gray-600">Our experts guide individuals, contractors, and companies for bulk orders.</p>
       </div>
     </div>
   </main>
 
-  <footer class="bg-gray-900 text-gray-300 py-6 text-center">
-    <p>&copy; 2025 BPC. All rights reserved.</p>
+  <!-- Footer -->
+  <footer class="bg-white border-t mt-16">
+    <div class="container mx-auto text-center py-6 text-gray-600 text-sm">
+      © 2025 BPC – All rights reserved.
+    </div>
   </footer>
+
+  <script>feather.replace();</script>
 </body>
 </html>
