@@ -239,11 +239,11 @@
     document.getElementById("quotationForm").addEventListener("submit", function(e){
       e.preventDefault();
 
-      emailjs.send("service_nk3h1bb", "template_kj7enqg", {
-        from_name: document.getElementById("qName").value,
+      emailjs.send("service_bpcproc_2025", "template_bpcproc_request", {
+        name: document.getElementById("qName").value,
         phone: document.getElementById("qPhone").value,
         address: document.getElementById("qAddress").value,
-        reply_to: document.getElementById("qEmail").value,
+        email: document.getElementById("qEmail").value,
         message: document.getElementById("qMessage").value
       }).then(function() {
         Toastify({
