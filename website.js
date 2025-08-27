@@ -210,9 +210,11 @@ function renderCart() {
         <h4 class="font-medium text-sm">${item.name}</h4>
         <p class="text-xs text-neutral-500">৳${item.price} per unit</p>
         <div class="flex items-center gap-2 mt-2">
-          <button onclick="updateQty(${index}, ${item.qty - 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">–</button>
-          <span class="min-w-[24px] text-center">${item.qty}</span>
-          <button onclick="updateQty(${index}, ${item.qty + 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">+</button>
+           <button onclick="updateQty(${index}, ${item.qty - 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">–</button>
+            <input type="number" min="1" value="${item.qty}" 
+             onchange="updateQty(${index}, parseInt(this.value) || 1)" 
+             class="w-12 border rounded text-center text-sm" />
+           <button onclick="updateQty(${index}, ${item.qty + 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">+</button>
         </div>
       </div>
       <div class="flex flex-col items-end gap-2">
@@ -230,12 +232,16 @@ function renderCart() {
   const grandTotal = subtotal + deliveryCost;
 
   cartSummaryEl.innerHTML = `
-    <div class="p-4 border-t space-y-2 text-sm">
-      <div class="flex justify-between"><span>Subtotal:</span><span>৳${subtotal.toLocaleString()}</span></div>
-      <div class="flex justify-between"><span>Delivery:</span><span>৳${deliveryCost.toLocaleString()}</span></div>
-      <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>৳${grandTotal.toLocaleString()}</span></div>
-    </div>
-  `;
+  <div class="p-4 border-t space-y-2 text-sm">
+    <div class="flex justify-between"><span>Subtotal:</span><span>৳${subtotal.toLocaleString()}</span></div>
+    <div class="flex justify-between"><span>Delivery:</span><span>৳${deliveryCost.toLocaleString()}</span></div>
+    <div class="flex justify-between"><span>Deliver To:</span><span>${DISTRICT || "Not selected"}</span></div>
+    <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>৳${grandTotal.toLocaleString()}</span></div>
+    <button class="w-full mt-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow hover:opacity-90 transition">
+      Proceed to Checkout
+    </button>
+  </div>
+`;
 
   cartCountEl.textContent = CART.reduce((sum, i) => sum + i.qty, 0);
   lucide.createIcons();
