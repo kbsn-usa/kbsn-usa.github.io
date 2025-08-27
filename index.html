@@ -26,6 +26,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Toastify -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -114,11 +118,11 @@
           </p>
         </div>
         <form id="quotationForm" class="grid grid-cols-2 gap-3">
-          <input id="qName" type="text" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Name" required />
-          <input id="qPhone" type="tel" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Phone Number" required />
-          <input id="qAddress" type="text" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Address" required />
-          <input id="qEmail" type="email" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Email" required>
-          <textarea id="qMessage" class="w-full col-span-2 border p-2 rounded-xl px-3 py-2 h-32 focus:ring-2 focus:ring-emerald-500 transition" placeholder="List items, quantities, etc." required></textarea>
+          <input id="qName" name="qName" type="text" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Name" required />
+          <input id="qPhone" name="qPhone" type="tel" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Phone Number" required />
+          <input id="qAddress" name="qAddress" type="text" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Address" required />
+          <input id="qEmail" name="qEmail" type="email" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Email" required>
+          <textarea id="qMessage" name="qMessage" class="w-full col-span-2 border p-2 rounded-xl px-3 py-2 h-32 focus:ring-2 focus:ring-emerald-500 transition" placeholder="List items, quantities, etc." required></textarea>
           <button type="submit" class="col-span-2 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-xl px-4 py-3 h-12 font-semibold shadow hover:opacity-90 transition">
             Request Quotation
           </button>
@@ -228,8 +232,38 @@
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     (function(){
-      emailjs.init("fpDzznXzakdQE1aQh");
+      emailjs.init("fpDzznXzakdQE1aQh"); // Your EmailJS Public Key
     })();
+
+    // Quotation form handler
+    document.getElementById("quotationForm").addEventListener("submit", function(e){
+      e.preventDefault();
+
+      emailjs.send("service_nk3h1bb", "template_kj7enqg", {
+        from_name: document.getElementById("qName").value,
+        phone: document.getElementById("qPhone").value,
+        address: document.getElementById("qAddress").value,
+        reply_to: document.getElementById("qEmail").value,
+        message: document.getElementById("qMessage").value
+      }).then(function() {
+        Toastify({
+          text: "Quotation request sent ✅",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#10b981"
+        }).showToast();
+        document.getElementById("quotationForm").reset();
+      }, function(error) {
+        Toastify({
+          text: "Failed to send ❌ Please try again.",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ef4444"
+        }).showToast();
+      });
+    });
   </script>
 </body>
 </html>
