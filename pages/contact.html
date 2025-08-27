@@ -45,12 +45,31 @@
       </div>
 
       <!-- Form -->
-      <form class="bg-white rounded-2xl shadow p-8 space-y-4">
-        <input type="text" placeholder="Your Name" class="w-full border p-3 rounded" required>
-        <input type="email" placeholder="Your Email" class="w-full border p-3 rounded" required>
-        <textarea placeholder="Your Message" class="w-full border p-3 rounded" rows="5" required></textarea>
-        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">Send Message</button>
-      </form>
+      <form id="contactForm" class="space-y-4 bg-white shadow-lg rounded-2xl p-6">
+  <div>
+    <label class="block text-sm font-medium">Name</label>
+    <input id="cName" type="text" required class="w-full border rounded-lg p-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium">Email</label>
+    <input id="cEmail" type="email" required class="w-full border rounded-lg p-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium">Phone</label>
+    <input id="cPhone" type="text" class="w-full border rounded-lg p-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium">Subject</label>
+    <input id="cSubject" type="text" required class="w-full border rounded-lg p-2">
+  </div>
+  <div>
+    <label class="block text-sm font-medium">Message</label>
+    <textarea id="cMessage" rows="4" required class="w-full border rounded-lg p-2"></textarea>
+  </div>
+  <button type="submit" class="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800">
+    Send Message
+  </button>
+</form>
     </div>
   </main>
 
