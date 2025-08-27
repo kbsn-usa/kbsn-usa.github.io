@@ -270,7 +270,7 @@ if (quotationFormEl) {
     const templateParams = {
       name: document.getElementById("qName").value,
       phone: document.getElementById("qPhone").value,
-      company: document.getElementById("qCompany").value,
+      address: document.getElementById("qAddress").value,
       email: document.getElementById("qEmail").value,
       message: document.getElementById("qMessage").value
     };
