@@ -261,63 +261,6 @@ if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
 if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
-// ================== QUOTATION FORM ==================
-const quotationFormEl = document.getElementById("quotationForm");
-if (quotationFormEl) {
-  quotationFormEl.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const templateParams = {
-      name: document.getElementById("qName").value,
-      phone: document.getElementById("qPhone").value,
-      address: document.getElementById("qAddress").value,
-      email: document.getElementById("qEmail").value,
-      message: document.getElementById("qMessage").value
-    };
-
-    emailjs
-      .send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
-      .then(
-        () => {
-          alert("Quotation request sent successfully!");
-          quotationFormEl.reset();
-        },
-        (error) => {
-          alert("Failed to send request. Please try again.");
-          console.error(error);
-        }
-      );
-  });
-}
-// ================== CONTACT FORM ==================
-const contactFormEl = document.getElementById("contactForm");
-if (contactFormEl) {
-  contactFormEl.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const templateParams = {
-      name: document.getElementById("qName").value,
-      email: document.getElementById("qEmail").value,
-      phone: document.getElementById("qPhone").value,
-      address: document.getElementById("qAddress").value,
-      message: document.getElementById("qMessage").value,
-    };
-
-    emailjs
-      .send("service_bpcproc_2025", "template_bpcproc_request", templateParams)
-      .then(
-        () => {
-          alert("Message sent successfully!");
-          contactFormEl.reset();
-        },
-        (error) => {
-          alert("Failed to send message. Please try again.");
-          console.error(error);
-        }
-      );
-  });
-}
-
 // ================== DISTRICT ==================
 function renderDistricts() {
   if (!districtSelectEl) return;
