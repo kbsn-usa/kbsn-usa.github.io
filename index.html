@@ -107,28 +107,43 @@
       <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
-    <!-- QUOTATION -->
-    <section class="border-dashed border rounded-3xl bg-white shadow-sm">
-      <div class="p-8 grid md:grid-cols-2 gap-6 items-center">
-        <div>
-          <h3 class="text-2xl font-bold">Need a custom quotation?</h3>
-          <p class="text-sm text-neutral-600 mt-2">
-            For large or industrial orders, submit your BOQ or requirements.
-            Our team will verify supplier availability and lock reasonable pricing.
-          </p>
-        </div>
-        <form id="quotationForm" class="grid grid-cols-2 gap-3">
-          <input id="qName" name="qName" type="text" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Name" required />
-          <input id="qPhone" name="qPhone" type="tel" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Phone Number" required />
-          <input id="qAddress" name="qAddress" type="text" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Address" required />
-          <input id="qEmail" name="qEmail" type="email" class="w-full h-12 border p-2 rounded-xl px-3 focus:ring-2 focus:ring-emerald-500 transition" placeholder="Your Email" required>
-          <textarea id="qMessage" name="qMessage" class="w-full col-span-2 border p-2 rounded-xl px-3 py-2 h-32 focus:ring-2 focus:ring-emerald-500 transition" placeholder="List items, quantities, etc." required></textarea>
-          <button type="submit" class="col-span-2 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-xl px-4 py-3 h-12 font-semibold shadow hover:opacity-90 transition">
-            Request Quotation
-          </button>
-        </form>
+    <!-- Quotation Form Section -->
+<section class="container mx-auto py-20 px-6">
+  <h2 class="text-3xl font-bold text-center mb-6">Request a Quotation</h2>
+  <p class="text-center text-gray-600 mb-12">Need materials or services? Fill out the form below and we’ll get back to you with a quotation.</p>
+
+  <div class="max-w-2xl mx-auto">
+    <form id="quotationForm" class="space-y-4 bg-white shadow-lg rounded-2xl p-6">
+      <div>
+        <label for="qName" class="block text-sm font-medium">Name</label>
+        <input id="qName" type="text" required class="w-full border rounded-lg p-2">
       </div>
-    </section>
+      <div>
+        <label for="qEmail" class="block text-sm font-medium">Email</label>
+        <input id="qEmail" type="email" required class="w-full border rounded-lg p-2">
+      </div>
+      <div>
+        <label for="qPhone" class="block text-sm font-medium">Phone Number</label>
+        <input id="qPhone" type="text" class="w-full border rounded-lg p-2">
+      </div>
+      <div>
+        <label for="qAddress" class="block text-sm font-medium">Address</label>
+        <input id="qAddress" type="text" required class="w-full border rounded-lg p-2">
+      </div>
+      <div>
+        <label for="qMessage" class="block text-sm font-medium">Your Requirements</label>
+        <textarea id="qMessage" rows="4" required class="w-full border rounded-lg p-2"></textarea>
+      </div>
+      <button id="qSubmitBtn" type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+        <span id="qBtnText">Send Quotation Request</span>
+        <svg id="qBtnSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+      </button>
+    </form>
+  </div>
+</section>
   </main>
 
   <!-- PRODUCT DETAILS -->
