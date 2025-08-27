@@ -289,6 +289,34 @@ if (quotationFormEl) {
       );
   });
 }
+// ================== CONTACT FORM ==================
+const contactFormEl = document.getElementById("contactForm");
+if (contactFormEl) {
+  contactFormEl.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const templateParams = {
+      name: document.getElementById("cName").value,
+      email: document.getElementById("cEmail").value,
+      phone: document.getElementById("cPhone").value,
+      subject: document.getElementById("cSubject").value,
+      message: document.getElementById("cMessage").value,
+    };
+
+    emailjs
+      .send("service_bpcproc_2025", "template_bpcproc_contact", templateParams)
+      .then(
+        () => {
+          alert("Message sent successfully!");
+          contactFormEl.reset();
+        },
+        (error) => {
+          alert("Failed to send message. Please try again.");
+          console.error(error);
+        }
+      );
+  });
+}
 
 // ================== DISTRICT ==================
 function renderDistricts() {
