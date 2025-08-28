@@ -1,7 +1,5 @@
 /* ================== GLOBAL STATE ================== */
 let products = [];
-let districtRates = []; // loaded from data/districts.json
-
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
 let DISTRICT = localStorage.getItem("bpc-DISTRICTS") || "";
 let SEARCH_QUERY = "";
@@ -21,23 +19,32 @@ const searchInputEl = document.getElementById("searchInput");
 const categoryFiltersEl = document.getElementById("categoryFilters");
 const emptyCartEl = document.getElementById("empty-cart");
 
+/* ================== DISTRICTS ================== */
+const allDistricts = [
+  "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
+  "Tangail","Kishoreganj","Narsingdi","Chattogram","Cox's Bazar",
+  "Khulna","Rajshahi","Sylhet","Rangpur","Barisal","Mymensingh",
+  "Cumilla","Feni","Noakhali","Lakshmipur","Chandpur","Brahmanbaria",
+  "Habiganj","Moulvibazar","Sunamganj","Pabna","Bogura","Joypurhat",
+  "Naogaon","Natore","Sirajganj","Jashore","Satkhira","Magura",
+  "Jhenaidah","Narail","Kushtia","Meherpur","Chuadanga","Barishal",
+  "Patuakhali","Bhola","Pirojpur","Jhalokati","Barguna","Mymensingh",
+  "Netrokona","Sherpur","Jamalpur","Dinajpur","Thakurgaon","Panchagarh",
+  "Nilphamari","Lalmonirhat","Kurigram","Gaibandha","Rangpur",
+  "Bagerhat","Khagrachhari","Rangamati","Bandarban"
+];
+
 /* ================== INIT ================== */
 async function init() {
   try {
-    const [prodRes, distRes] = await Promise.all([
-      fetch("data/products.json"),
-      fetch("data/districts.json")
-    ]);
-    products = await prodRes.json();
-    districtRates = await distRes.json();
-
+    const res = await fetch("data/products.json");
+    products = await res.json();
     renderDistricts();
-    initCategoryIfMissing();
     renderCategories();
     renderProducts();
     renderCart();
   } catch (err) {
-    console.error("Error loading data:", err);
+    console.error("Error loading products:", err);
   }
 }
 init();
@@ -52,15 +59,15 @@ function fmtMoney(n) {
 /**
  * Normalize product.brands into array of { name, price }
  * Supports:
- *  - New format: [{name, price}, ...]
- *  - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
- *  - Legacy string: "Akij, BSRM"     (uses product.price for each)
+ * - New format: [{name, price}, ...]
+ * - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
+ * - Legacy string: "Akij, BSRM"     (uses product.price for each)
  */
 function getBrandObjects(prod) {
   if (!prod || prod.brands == null) return [];
   const basePrice = Number(prod.price) || 0;
 
-  // Already objects
+  // Already in new format
   if (Array.isArray(prod.brands) && prod.brands.length && typeof prod.brands[0] === "object") {
     return prod.brands
       .filter(b => b && typeof b.name === "string")
@@ -68,7 +75,7 @@ function getBrandObjects(prod) {
       .filter(b => b.name);
   }
 
-  // Array of names
+  // Legacy array of names
   if (Array.isArray(prod.brands)) {
     return prod.brands
       .map(x => String(x).trim())
@@ -76,7 +83,7 @@ function getBrandObjects(prod) {
       .map(name => ({ name, price: basePrice }));
   }
 
-  // Comma-separated string
+  // Legacy comma-separated string
   if (typeof prod.brands === "string") {
     return prod.brands
       .split(",")
@@ -96,28 +103,14 @@ function getPriceForBrand(prod, brandName) {
   const brands = getBrandObjects(prod);
   const found = brands.find(b => b.name === brandName);
   if (found) return Number(found.price) || 0;
-  return Number(prod.price) || 0; // fallback
+  // fallback to product.price if no brand match
+  return Number(prod.price) || 0;
 }
 
 function getMinPrice(prod) {
   const brands = getBrandObjects(prod);
   if (brands.length === 0) return Number(prod.price) || 0;
   return Math.min(...brands.map(b => Number(b.price) || Infinity));
-}
-
-/* ================== DELIVERY (districts.json) ================== */
-function getDeliveryConfigByDistrict(districtName) {
-  if (!districtRates || !districtRates.length) {
-    return { name: "", minCost: 0, perKgRate: 0 };
-  }
-  const found = districtRates.find(d => d.name === districtName);
-  return found || { name: districtName, minCost: 0, perKgRate: 0 };
-}
-
-function getDeliveryCost(totalWeight) {
-  const { minCost, perKgRate } = getDeliveryConfigByDistrict(DISTRICT || "");
-  const calc = (Number(totalWeight) || 0) * (Number(perKgRate) || 0);
-  return Math.max(calc, Number(minCost) || 0);
 }
 
 /* ================== PRODUCTS ================== */
@@ -163,8 +156,6 @@ function renderProducts() {
         </button>
       </div>`;
   }).join("");
-
-  if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
 
 /* ================== SEARCH ================== */
@@ -207,7 +198,8 @@ function addToCart(id) {
   const defaultBrandName = brandObjs[0]?.name || "";
   const defaultUnitPrice = brandObjs[0]?.price ?? (Number(product.price) || 0);
 
-  // If item already in cart with same product & same brand, bump qty
+  // If item already in cart with the same product & same brand, bump qty.
+  // If exists but brand differs, we'll add as a separate line item.
   const existingIndex = CART.findIndex(
     i => i.id === id && i.selectedBrand === defaultBrandName
   );
@@ -259,6 +251,17 @@ function updateBrand(index, brandName) {
 function saveCart() {
   localStorage.setItem("bpc-CART", JSON.stringify(CART));
   renderCart();
+}
+
+function getDeliveryCost(totalWeight) {
+  const insideDhaka = [
+    "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
+    "Tangail","Kishoreganj","Narsingdi"
+  ];
+  const perKgRate = insideDhaka.includes(DISTRICT) ? 2.1 : 3.5;
+  const minCost = insideDhaka.includes(DISTRICT) ? 150 : 200;
+  const calc = totalWeight * perKgRate;
+  return Math.max(calc, minCost);
 }
 
 /* ================== CART RENDER ================== */
@@ -328,17 +331,13 @@ function renderCart() {
     cartItemsEl.appendChild(div);
   });
 
-  const deliveryCfg = getDeliveryConfigByDistrict(DISTRICT || "");
   const deliveryCost = getDeliveryCost(totalWeight);
   const grandTotal = subtotal + deliveryCost;
 
   cartSummaryEl.innerHTML = `
     <div class="space-y-2 text-sm">
       <div class="flex justify-between"><span>Subtotal</span><span>${fmtMoney(subtotal)}</span></div>
-      <div class="flex justify-between">
-        <span>Delivery (${DISTRICT || "Select district"} — min ${fmtMoney(deliveryCfg.minCost)}, ${deliveryCfg.perKgRate}/kg)</span>
-        <span>${fmtMoney(deliveryCost)}</span>
-      </div>
+      <div class="flex justify-between"><span>Delivery</span><span>${fmtMoney(deliveryCost)}</span></div>
       <div class="flex justify-between"><span>Deliver To</span><span>${DISTRICT || "Not selected"}</span></div>
       <div class="flex justify-between font-bold text-base pt-1 border-t"><span>Total</span><span>${fmtMoney(grandTotal)}</span></div>
     </div>
@@ -371,16 +370,13 @@ if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
 if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
-/* ================== DISTRICT SELECT ================== */
+/* ================== DISTRICT ================== */
 function renderDistricts() {
   if (!districtSelectEl) return;
 
-  // Build options from districts.json to avoid drift
-  const names = (districtRates || []).map(d => d.name);
-
   districtSelectEl.innerHTML = `
     <option value="" disabled ${DISTRICT === "" ? "selected" : ""}>Deliver to</option>
-    ${names.map((d) =>
+    ${allDistricts.map((d) =>
       `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`
     ).join("")}
   `;
@@ -392,13 +388,6 @@ function renderDistricts() {
   });
 }
 
-/* ================== CATEGORY INIT (after products load) ================== */
-function initCategoryIfMissing() {
-  if (!products.some(p => p.category === ACTIVE_CATEGORY)) {
-    ACTIVE_CATEGORY = "all";
-  }
-}
-
 /* ================== EXPOSED (for inline handlers) ================== */
 window.setCategory = setCategory;
 window.addToCart = addToCart;
@@ -407,4 +396,3 @@ window.updateBrand = updateBrand;
 window.removeFromCart = removeFromCart;
 window.openCart = openCart;
 window.closeCart = closeCart;
-```0
