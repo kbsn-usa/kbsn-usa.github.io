@@ -1,5 +1,7 @@
 /* ================== GLOBAL STATE ================== */
 let products = [];
+let districtRates = []; // loaded from data/districts.json
+
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
 let DISTRICT = localStorage.getItem("bpc-DISTRICTS") || "";
 let SEARCH_QUERY = "";
@@ -19,39 +21,23 @@ const searchInputEl = document.getElementById("searchInput");
 const categoryFiltersEl = document.getElementById("categoryFilters");
 const emptyCartEl = document.getElementById("empty-cart");
 
-/* ================== DISTRICTS (64) ================== */
-const allDistricts = [
-  // Dhaka Division
-  "Dhaka","Gazipur","Kishoreganj","Manikganj","Munshiganj","Narayanganj","Narsingdi","Tangail",
-  "Faridpur","Gopalganj","Madaripur","Rajbari","Shariatpur",
-  // Mymensingh Division
-  "Mymensingh","Jamalpur","Netrokona","Sherpur",
-  // Chattogram Division
-  "Chattogram","Cox's Bazar","Cumilla","Feni","Brahmanbaria","Chandpur","Noakhali","Lakshmipur",
-  "Khagrachhari","Rangamati","Bandarban",
-  // Sylhet Division
-  "Sylhet","Moulvibazar","Habiganj","Sunamganj",
-  // Rajshahi Division
-  "Rajshahi","Chapainawabganj","Naogaon","Natore","Joypurhat","Bogura","Pabna","Sirajganj",
-  // Rangpur Division
-  "Rangpur","Dinajpur","Kurigram","Gaibandha","Nilphamari","Lalmonirhat","Panchagarh","Thakurgaon",
-  // Khulna Division
-  "Khulna","Bagerhat","Satkhira","Jashore","Jhenaidah","Magura","Narail","Kushtia","Chuadanga","Meherpur",
-  // Barishal Division
-  "Barishal","Bhola","Patuakhali","Barguna","Jhalokati","Pirojpur"
-];
-
 /* ================== INIT ================== */
 async function init() {
   try {
-    const res = await fetch("data/products.json");
-    products = await res.json();
+    const [prodRes, distRes] = await Promise.all([
+      fetch("data/products.json"),
+      fetch("data/districts.json")
+    ]);
+    products = await prodRes.json();
+    districtRates = await distRes.json();
+
     renderDistricts();
+    initCategoryIfMissing();
     renderCategories();
     renderProducts();
     renderCart();
   } catch (err) {
-    console.error("Error loading products:", err);
+    console.error("Error loading data:", err);
   }
 }
 init();
@@ -63,11 +49,18 @@ function fmtMoney(n) {
   return "৳" + num.toLocaleString();
 }
 
+/**
+ * Normalize product.brands into array of { name, price }
+ * Supports:
+ *  - New format: [{name, price}, ...]
+ *  - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
+ *  - Legacy string: "Akij, BSRM"     (uses product.price for each)
+ */
 function getBrandObjects(prod) {
   if (!prod || prod.brands == null) return [];
   const basePrice = Number(prod.price) || 0;
 
-  // Already in new format
+  // Already objects
   if (Array.isArray(prod.brands) && prod.brands.length && typeof prod.brands[0] === "object") {
     return prod.brands
       .filter(b => b && typeof b.name === "string")
@@ -75,7 +68,7 @@ function getBrandObjects(prod) {
       .filter(b => b.name);
   }
 
-  // Legacy array of names
+  // Array of names
   if (Array.isArray(prod.brands)) {
     return prod.brands
       .map(x => String(x).trim())
@@ -83,7 +76,7 @@ function getBrandObjects(prod) {
       .map(name => ({ name, price: basePrice }));
   }
 
-  // Legacy comma-separated string
+  // Comma-separated string
   if (typeof prod.brands === "string") {
     return prod.brands
       .split(",")
@@ -110,6 +103,21 @@ function getMinPrice(prod) {
   const brands = getBrandObjects(prod);
   if (brands.length === 0) return Number(prod.price) || 0;
   return Math.min(...brands.map(b => Number(b.price) || Infinity));
+}
+
+/* ================== DELIVERY (districts.json) ================== */
+function getDeliveryConfigByDistrict(districtName) {
+  if (!districtRates || !districtRates.length) {
+    return { name: "", minCost: 0, perKgRate: 0 };
+  }
+  const found = districtRates.find(d => d.name === districtName);
+  return found || { name: districtName, minCost: 0, perKgRate: 0 };
+}
+
+function getDeliveryCost(totalWeight) {
+  const { minCost, perKgRate } = getDeliveryConfigByDistrict(DISTRICT || "");
+  const calc = (Number(totalWeight) || 0) * (Number(perKgRate) || 0);
+  return Math.max(calc, Number(minCost) || 0);
 }
 
 /* ================== PRODUCTS ================== */
@@ -155,6 +163,8 @@ function renderProducts() {
         </button>
       </div>`;
   }).join("");
+
+  if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
 
 /* ================== SEARCH ================== */
@@ -251,22 +261,6 @@ function saveCart() {
   renderCart();
 }
 
-function getDeliveryCost(totalWeight) {
-  // Pull config for the selected district with fallback
-  const { minCost, perKgRate } = getDeliveryConfigByDistrict(DISTRICT || "");
-  const calc = (Number(totalWeight) || 0) * (Number(perKgRate) || 0);
-  return Math.max(calc, Number(minCost) || 0);
-}
-
-async function calculateDeliveryCost(selectedDistrict, totalWeight) {
-  const response = await fetch("data/products.json");
-  const districts = await response.json();
-
-  const district = districts.find(d => d.name === selectedDistrict);
-  if (!district) return 0;
-
-  return Math.max(district.minCost, totalWeight * district.perKgRate);
-}
 /* ================== CART RENDER ================== */
 function renderCart() {
   if (!cartItemsEl) return;
@@ -333,11 +327,10 @@ function renderCart() {
 
     cartItemsEl.appendChild(div);
   });
-  
-  const deliveryCost = getDeliveryCost(totalWeight);
-  const grandTotal = subtotal + deliveryCost;
 
   const deliveryCfg = getDeliveryConfigByDistrict(DISTRICT || "");
+  const deliveryCost = getDeliveryCost(totalWeight);
+  const grandTotal = subtotal + deliveryCost;
 
   cartSummaryEl.innerHTML = `
     <div class="space-y-2 text-sm">
@@ -378,13 +371,16 @@ if (openCartBtnEl) openCartBtnEl.addEventListener("click", openCart);
 if (closeCartBtnEl) closeCartBtnEl.addEventListener("click", closeCart);
 if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 
-/* ================== DISTRICT ================== */
+/* ================== DISTRICT SELECT ================== */
 function renderDistricts() {
   if (!districtSelectEl) return;
 
+  // Build options from districts.json to avoid drift
+  const names = (districtRates || []).map(d => d.name);
+
   districtSelectEl.innerHTML = `
     <option value="" disabled ${DISTRICT === "" ? "selected" : ""}>Deliver to</option>
-    ${allDistricts.map((d) =>
+    ${names.map((d) =>
       `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`
     ).join("")}
   `;
@@ -411,3 +407,4 @@ window.updateBrand = updateBrand;
 window.removeFromCart = removeFromCart;
 window.openCart = openCart;
 window.closeCart = closeCart;
+```0
