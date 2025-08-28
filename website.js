@@ -26,7 +26,7 @@ async function init() {
   try {
     const [prodRes, distRes] = await Promise.all([
       fetch("data/products.json"),
-      fetch("data/districts.json")
+      fetch("data/districts.json"),
     ]);
     products = await prodRes.json();
     districtRates = await distRes.json();
@@ -36,6 +36,7 @@ async function init() {
     renderCategories();
     renderProducts();
     renderCart();
+    wireModalStaticHandlers(); // one-time modal close/qty handlers
   } catch (err) {
     console.error("Error loading data:", err);
   }
@@ -49,6 +50,13 @@ function fmtMoney(n) {
   return "৳" + num.toLocaleString();
 }
 
+/**
+ * Normalize product.brands into array of { name, price }
+ * Supports:
+ * - New format: [{name, price}, ...]
+ * - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
+ * - Legacy string: "Akij, BSRM"     (uses product.price for each)
+ */
 function getBrandObjects(prod) {
   if (!prod || prod.brands == null) return [];
   const basePrice = Number(prod.price) || 0;
@@ -56,38 +64,38 @@ function getBrandObjects(prod) {
   // Already objects
   if (Array.isArray(prod.brands) && prod.brands.length && typeof prod.brands[0] === "object") {
     return prod.brands
-      .filter(b => b && typeof b.name === "string")
-      .map(b => ({ name: String(b.name).trim(), price: Number(b.price) || basePrice }))
-      .filter(b => b.name);
+      .filter((b) => b && typeof b.name === "string")
+      .map((b) => ({ name: String(b.name).trim(), price: Number(b.price) || basePrice }))
+      .filter((b) => b.name);
   }
 
   // Array of names
   if (Array.isArray(prod.brands)) {
     return prod.brands
-      .map(x => String(x).trim())
+      .map((x) => String(x).trim())
       .filter(Boolean)
-      .map(name => ({ name, price: basePrice }));
+      .map((name) => ({ name, price: basePrice }));
   }
 
   // Comma-separated string
   if (typeof prod.brands === "string") {
     return prod.brands
       .split(",")
-      .map(s => s.trim())
+      .map((s) => s.trim())
       .filter(Boolean)
-      .map(name => ({ name, price: basePrice }));
+      .map((name) => ({ name, price: basePrice }));
   }
 
   return [];
 }
 
 function getBrandNames(prod) {
-  return getBrandObjects(prod).map(b => b.name);
+  return getBrandObjects(prod).map((b) => b.name);
 }
 
 function getPriceForBrand(prod, brandName) {
   const brands = getBrandObjects(prod);
-  const found = brands.find(b => b.name === brandName);
+  const found = brands.find((b) => b.name === brandName);
   if (found) return Number(found.price) || 0;
   return Number(prod.price) || 0; // fallback
 }
@@ -95,7 +103,7 @@ function getPriceForBrand(prod, brandName) {
 function getMinPrice(prod) {
   const brands = getBrandObjects(prod);
   if (brands.length === 0) return Number(prod.price) || 0;
-  return Math.min(...brands.map(b => Number(b.price) || Infinity));
+  return Math.min(...brands.map((b) => Number(b.price) || Infinity));
 }
 
 /* ================== DELIVERY (districts.json) ================== */
@@ -103,7 +111,7 @@ function getDeliveryConfigByDistrict(districtName) {
   if (!districtRates || !districtRates.length) {
     return { name: "", minCost: 0, perKgRate: 0 };
   }
-  const found = districtRates.find(d => d.name === districtName);
+  const found = districtRates.find((d) => d.name === districtName);
   return found || { name: districtName, minCost: 0, perKgRate: 0 };
 }
 
@@ -134,15 +142,20 @@ function renderProducts() {
     return;
   }
 
-  productListEl.innerHTML = filtered.map((p) => {
-    const minPrice = getMinPrice(p);
-    const brands = getBrandObjects(p);
-    const brandBadge = brands.length
-      ? `<span class="inline-block text-[11px] text-neutral-600 bg-neutral-100 border rounded px-2 py-0.5 mt-1">${brands.length} brand${brands.length>1?'s':''}</span>`
-      : "";
+  productListEl.innerHTML = filtered
+    .map((p) => {
+      const minPrice = getMinPrice(p);
+      const brands = getBrandObjects(p);
+      const brandBadge = brands.length
+        ? `<span class="inline-block text-[11px] text-neutral-600 bg-neutral-100 border rounded px-2 py-0.5 mt-1">${brands.length} brand${
+            brands.length > 1 ? "s" : ""
+          }</span>`
+        : "";
 
-    return `
-      <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white">
+      // Card is clickable to open modal; button does quick add (and stops propagation)
+      return `
+      <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white cursor-pointer"
+           onclick="openProductModal('${p.id}')">
         <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded">
         <h3 class="text-lg font-semibold mt-2">${p.name}</h3>
         <p class="text-sm text-gray-500">${p.origin || ""}</p>
@@ -150,12 +163,13 @@ function renderProducts() {
         <p class="text-xs text-gray-500">Unit: ${p.unit || "-"}</p>
         <p class="text-xs text-gray-500">Weight: ${p.weight} kg</p>
         ${brandBadge}
-        <button onclick="addToCart('${p.id}')"
+        <button onclick="event.stopPropagation(); addToCart('${p.id}')"
           class="mt-3 w-full bg-black text-white py-2 rounded hover:bg-gray-800">
           Add to Cart
         </button>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
@@ -173,16 +187,20 @@ function renderCategories() {
   if (!categoryFiltersEl) return;
   const categories = ["all", ...new Set(products.map((p) => p.category))];
 
-  categoryFiltersEl.innerHTML = categories.map((cat) => `
+  categoryFiltersEl.innerHTML = categories
+    .map(
+      (cat) => `
     <button
       onclick="setCategory('${cat}')"
-      class="px-3 py-1 rounded-full border ${ACTIVE_CATEGORY === cat
-        ? "bg-black text-white"
-        : "bg-white text-gray-600 hover:bg-gray-100"}"
+      class="px-3 py-1 rounded-full border ${
+        ACTIVE_CATEGORY === cat ? "bg-black text-white" : "bg-white text-gray-600 hover:bg-gray-100"
+      }"
     >
       ${cat.charAt(0).toUpperCase() + cat.slice(1)}
     </button>
-  `).join("");
+  `
+    )
+    .join("");
 }
 
 function setCategory(cat) {
@@ -192,21 +210,21 @@ function setCategory(cat) {
 }
 
 /* ================== CART ================== */
-function addToCart(id) {
+// Extended to allow optional brand + qty
+function addToCart(id, brandName = null, qty = 1) {
   const product = products.find((p) => p.id === id);
   if (!product) return;
 
   const brandObjs = getBrandObjects(product);
-  const defaultBrandName = brandObjs[0]?.name || "";
-  const defaultUnitPrice = brandObjs[0]?.price ?? (Number(product.price) || 0);
+  const defaultBrandName = brandName ?? (brandObjs[0]?.name || "");
+  const defaultUnitPrice =
+    brandName != null ? getPriceForBrand(product, brandName) : brandObjs[0]?.price ?? (Number(product.price) || 0);
 
   // If item already in cart with same product & same brand, bump qty
-  const existingIndex = CART.findIndex(
-    i => i.id === id && i.selectedBrand === defaultBrandName
-  );
+  const existingIndex = CART.findIndex((i) => i.id === id && i.selectedBrand === defaultBrandName);
 
   if (existingIndex > -1) {
-    CART[existingIndex].qty += 1;
+    CART[existingIndex].qty += Math.max(1, Number(qty) || 1);
   } else {
     CART.push({
       id: product.id,
@@ -214,9 +232,9 @@ function addToCart(id) {
       image: product.image,
       unit: product.unit,
       weight: product.weight,
-      qty: 1,
+      qty: Math.max(1, Number(qty) || 1),
       selectedBrand: defaultBrandName,
-      unitPrice: defaultUnitPrice
+      unitPrice: defaultUnitPrice,
     });
   }
 
@@ -242,7 +260,7 @@ function updateQty(index, qty) {
 
 function updateBrand(index, brandName) {
   if (!CART[index]) return;
-  const prod = products.find(p => p.id === CART[index].id);
+  const prod = products.find((p) => p.id === CART[index].id);
   const newPrice = getPriceForBrand(prod, brandName);
   CART[index].selectedBrand = brandName;
   CART[index].unitPrice = newPrice;
@@ -254,75 +272,124 @@ function saveCart() {
   renderCart();
 }
 
+/* ================== PRODUCT MODAL ================== */
 let selectedProduct = null;
 
-// Open modal with product details
-function openProductModal(product) {
+function openProductModal(productId) {
+  const product = products.find((p) => p.id === productId);
+  if (!product) return;
   selectedProduct = product;
 
-  document.getElementById("modalImage").src = product.image;
-  document.getElementById("modalName").innerText = product.name;
-  document.getElementById("modalCategory").innerText = "Category: " + product.category;
-  document.getElementById("modalOrigin").innerText = "Origin: " + product.origin;
-  document.getElementById("modalQuality").innerText = "Quality: " + product.quality;
-  document.getElementById("modalUnit").innerText = "Unit: " + product.unit;
-  document.getElementById("modalRating").innerText = "Rating: " + product.rating;
+  const m = {
+    modal: document.getElementById("productModal"),
+    image: document.getElementById("modalImage"),
+    name: document.getElementById("modalName"),
+    category: document.getElementById("modalCategory"),
+    origin: document.getElementById("modalOrigin"),
+    quality: document.getElementById("modalQuality"),
+    unit: document.getElementById("modalUnit"),
+    rating: document.getElementById("modalRating"),
+    brand: document.getElementById("modalBrand"),
+    qty: document.getElementById("modalQty"),
+    price: document.getElementById("modalPrice"),
+  };
 
-  const brandSelect = document.getElementById("modalBrand");
-  brandSelect.innerHTML = "";
+  if (!m.modal) return; // modal HTML not present
 
-  // Add brand options
-  for (const brand in product.brandPrices) {
+  m.image.src = product.image || "";
+  m.image.alt = product.name || "";
+  m.name.textContent = product.name || "";
+  m.category.textContent = "Category: " + (product.category || "-");
+  m.origin.textContent = "Origin: " + (product.origin || "-");
+  m.quality.textContent = "Quality: " + (product.quality || "-");
+  m.unit.textContent = "Unit: " + (product.unit || "-");
+  m.rating.textContent = "Rating: " + (product.rating ?? "-");
+
+  // Populate brand options from normalized brand objects
+  const brandObjs = getBrandObjects(product);
+  m.brand.innerHTML = "";
+  if (brandObjs.length) {
+    brandObjs.forEach((b) => {
+      const opt = document.createElement("option");
+      opt.value = b.name;
+      opt.textContent = `${b.name} (${fmtMoney(b.price)})`;
+      m.brand.appendChild(opt);
+    });
+  } else {
     const opt = document.createElement("option");
-    opt.value = brand;
-    opt.textContent = `${brand} (${product.brandPrices[brand]} ৳)`;
-    brandSelect.appendChild(opt);
+    const base = Number(product.price) || 0;
+    opt.value = "";
+    opt.textContent = `Default (${fmtMoney(base)})`;
+    m.brand.appendChild(opt);
   }
 
-  document.getElementById("modalQty").value = 1;
+  m.qty.value = 1;
   updateModalPrice();
 
-  document.getElementById("productModal").classList.remove("hidden");
+  m.modal.classList.remove("hidden");
 }
 
-// Close modal
-document.getElementById("closeModal").addEventListener("click", () => {
-  document.getElementById("productModal").classList.add("hidden");
-});
+function wireModalStaticHandlers() {
+  const closeBtn = document.getElementById("closeModal");
+  const minusBtn = document.getElementById("qtyMinus");
+  const plusBtn = document.getElementById("qtyPlus");
+  const qtyInput = document.getElementById("modalQty");
+  const brandSel = document.getElementById("modalBrand");
+  const addBtn = document.getElementById("addToCartFromModal");
 
-// Quantity buttons
-document.getElementById("qtyMinus").addEventListener("click", () => {
-  let qty = parseInt(document.getElementById("modalQty").value);
-  if (qty > 1) {
-    document.getElementById("modalQty").value = qty - 1;
-    updateModalPrice();
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      const modal = document.getElementById("productModal");
+      if (modal) modal.classList.add("hidden");
+    });
   }
-});
-document.getElementById("qtyPlus").addEventListener("click", () => {
-  let qty = parseInt(document.getElementById("modalQty").value);
-  document.getElementById("modalQty").value = qty + 1;
-  updateModalPrice();
-});
+  if (minusBtn) {
+    minusBtn.addEventListener("click", () => {
+      const qtyEl = document.getElementById("modalQty");
+      if (!qtyEl) return;
+      let qty = parseInt(qtyEl.value || "1", 10);
+      if (qty > 1) {
+        qtyEl.value = qty - 1;
+        updateModalPrice();
+      }
+    });
+  }
+  if (plusBtn) {
+    plusBtn.addEventListener("click", () => {
+      const qtyEl = document.getElementById("modalQty");
+      if (!qtyEl) return;
+      let qty = parseInt(qtyEl.value || "1", 10);
+      qtyEl.value = qty + 1;
+      updateModalPrice();
+    });
+  }
+  if (qtyInput) qtyInput.addEventListener("input", updateModalPrice);
+  if (brandSel) brandSel.addEventListener("change", updateModalPrice);
+  if (addBtn) {
+    addBtn.addEventListener("click", () => {
+      if (!selectedProduct) return;
+      const brand = (document.getElementById("modalBrand") || {}).value ?? null;
+      const qty = parseInt((document.getElementById("modalQty") || {}).value || "1", 10);
+      addToCart(selectedProduct.id, brand, qty);
+      const modal = document.getElementById("productModal");
+      if (modal) modal.classList.add("hidden");
+    });
+  }
+}
 
-// Update price
 function updateModalPrice() {
-  const brand = document.getElementById("modalBrand").value;
-  const qty = parseInt(document.getElementById("modalQty").value);
-  const price = selectedProduct.brandPrices[brand] * qty;
-  document.getElementById("modalPrice").innerText = price;
+  if (!selectedProduct) return;
+  const brandSel = document.getElementById("modalBrand");
+  const qtyEl = document.getElementById("modalQty");
+  const priceEl = document.getElementById("modalPrice");
+  if (!brandSel || !qtyEl || !priceEl) return;
+
+  const brand = brandSel.value || null;
+  const qty = Math.max(1, parseInt(qtyEl.value || "1", 10));
+  const unitPrice = brand ? getPriceForBrand(selectedProduct, brand) : Number(selectedProduct.price) || 0;
+  priceEl.textContent = fmtMoney(unitPrice * qty);
 }
 
-// Add to cart
-document.getElementById("addToCartFromModal").addEventListener("click", () => {
-  const brand = document.getElementById("modalBrand").value;
-  const qty = parseInt(document.getElementById("modalQty").value);
-  addToCart(selectedProduct, brand, qty);
-  document.getElementById("productModal").classList.add("hidden");
-});
-
-// On brand change update price
-document.getElementById("modalBrand").addEventListener("change", updateModalPrice);
-document.getElementById("modalQty").addEventListener("input", updateModalPrice);
 /* ================== CART RENDER ================== */
 function renderCart() {
   if (!cartItemsEl) return;
@@ -342,7 +409,7 @@ function renderCart() {
   let totalWeight = 0;
 
   CART.forEach((item, index) => {
-    const product = products.find(p => p.id === item.id) || {};
+    const product = products.find((p) => p.id === item.id) || {};
     const brandObjs = getBrandObjects(product);
 
     subtotal += (item.unitPrice || 0) * item.qty;
@@ -353,11 +420,15 @@ function renderCart() {
         <label class="text-xs text-neutral-500 mt-2 block">Brand</label>
         <select onchange="updateBrand(${index}, this.value)"
           class="w-full border rounded text-sm px-2 py-1">
-          ${brandObjs.map(b => `
+          ${brandObjs
+            .map(
+              (b) => `
             <option value="${b.name}" ${item.selectedBrand === b.name ? "selected" : ""}>
               ${b.name} — ${fmtMoney(b.price)}
             </option>
-          `).join("")}
+          `
+            )
+            .join("")}
         </select>
       `
       : "";
@@ -438,13 +509,13 @@ function renderDistricts() {
   if (!districtSelectEl) return;
 
   // Build options from districts.json to avoid drift
-  const names = (districtRates || []).map(d => d.name);
+  const names = (districtRates || []).map((d) => d.name);
 
   districtSelectEl.innerHTML = `
     <option value="" disabled ${DISTRICT === "" ? "selected" : ""}>Deliver to</option>
-    ${names.map((d) =>
-      `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`
-    ).join("")}
+    ${names
+      .map((d) => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`)
+      .join("")}
   `;
 
   districtSelectEl.addEventListener("change", (e) => {
@@ -456,7 +527,7 @@ function renderDistricts() {
 
 /* ================== CATEGORY INIT (after products load) ================== */
 function initCategoryIfMissing() {
-  if (!products.some(p => p.category === ACTIVE_CATEGORY)) {
+  if (!products.some((p) => p.category === ACTIVE_CATEGORY)) {
     ACTIVE_CATEGORY = "all";
   }
 }
@@ -469,4 +540,4 @@ window.updateBrand = updateBrand;
 window.removeFromCart = removeFromCart;
 window.openCart = openCart;
 window.closeCart = closeCart;
-```0
+window.openProductModal = openProductModal;
