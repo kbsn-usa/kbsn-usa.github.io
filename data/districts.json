@@ -1,9 +1,79 @@
-[
+{
   // --- Dhaka ---
-  { "name": "Dhaka", "minCost": 125, "perKgRate": 2.0 },
-
+  "Dhaka": { "minCost": 125, "perKgRate": 2.0 },
+  
   // --- Dhaka Neighboring districts ---
-  { "name": "Gazipur", "minCost": 150, "perKgRate": 2.2 },
+  "Gazipur": { "minCost": 150, "perKgRate": 2.2 },
+  "Narayanganj": { "minCost": 150, "perKgRate": 2.2 },
+  "Manikganj": { "minCost": 150, "perKgRate": 2.2 },
+  "Munshiganj": { "minCost": 150, "perKgRate": 2.2 },
+  
+  // --- Dhaka Mid-distance districts ---
+  "Tangail": { "minCost": 175, "perKgRate": 2.4 },
+  "Kishoreganj": { "minCost": 175, "perKgRate": 2.4 },
+  "Narsingdi": { "minCost": 175, "perKgRate": 2.4 },
+  "Faridpur": { "minCost": 175, "perKgRate": 2.4 },
+  "Madaripur": { "minCost": 175, "perKgRate": 2.4 },
+  "Rajbari": { "minCost": 175, "perKgRate": 2.4 },
+  "Shariatpur": { "minCost": 175, "perKgRate": 2.4 },
+  
+  // --- Dhaka Far-Remote districts ---
+  "Gopalganj": { "minCost": 200, "perKgRate": 2.6 },
+  "Jamalpur": { "minCost": 200, "perKgRate": 2.6 },
+  "Sherpur": { "minCost": 200, "perKgRate": 2.6 },
+  "Mymensingh": { "minCost": 200, "perKgRate": 2.6 },
+  "Netrokona": { "minCost": 200, "perKgRate": 2.6 },
+  "Barishal": { "minCost": 200, "perKgRate": 2.6 },
+  "Patuakhali": { "minCost": 200, "perKgRate": 2.6 },
+  "Bhola": { "minCost": 200, "perKgRate": 2.6 },
+  "Barguna": { "minCost": 200, "perKgRate": 2.6 },
+  "Jhalokathi": { "minCost": 200, "perKgRate": 2.6 },
+  "Pirojpur": { "minCost": 200, "perKgRate": 2.6 },
+  "Khulna": { "minCost": 200, "perKgRate": 2.6 },
+  "Bagerhat": { "minCost": 200, "perKgRate": 2.6 },
+  "Satkhira": { "minCost": 200, "perKgRate": 2.6 },
+  "Jessore": { "minCost": 200, "perKgRate": 2.6 },
+  "Magura": { "minCost": 200, "perKgRate": 2.6 },
+  "Jhenaidah": { "minCost": 200, "perKgRate": 2.6 },
+  "Narail": { "minCost": 200, "perKgRate": 2.6 },
+  "Chuadanga": { "minCost": 200, "perKgRate": 2.6 },
+  "Kushtia": { "minCost": 200, "perKgRate": 2.6 },
+  "Meherpur": { "minCost": 200, "perKgRate": 2.6 },
+  "Rangpur": { "minCost": 200, "perKgRate": 2.8 },
+  "Gaibandha": { "minCost": 200, "perKgRate": 2.8 },
+  "Nilphamari": { "minCost": 200, "perKgRate": 2.8 },
+  "Lalmonirhat": { "minCost": 200, "perKgRate": 2.8 },
+  "Kurigram": { "minCost": 200, "perKgRate": 2.8 },
+  "Dinajpur": { "minCost": 200, "perKgRate": 2.8 },
+  "Thakurgaon": { "minCost": 200, "perKgRate": 2.8 },
+  "Panchagarh": { "minCost": 200, "perKgRate": 2.8 },
+  "Rajshahi": { "minCost": 200, "perKgRate": 2.8 },
+  "Natore": { "minCost": 200, "perKgRate": 2.8 },
+  "Naogaon": { "minCost": 200, "perKgRate": 2.8 },
+  "Chapainawabganj": { "minCost": 200, "perKgRate": 2.8 },
+  "Pabna": { "minCost": 200, "perKgRate": 2.8 },
+  "Sirajganj": { "minCost": 200, "perKgRate": 2.8 },
+  "Bogura": { "minCost": 200, "perKgRate": 2.8 },
+  "Joypurhat": { "minCost": 200, "perKgRate": 2.8 },
+  "Chattogram": { "minCost": 200, "perKgRate": 3.0 },
+  "Cox's Bazar": { "minCost": 200, "perKgRate": 3.0 },
+  "Khagrachhari": { "minCost": 200, "perKgRate": 3.0 },
+  "Rangamati": { "minCost": 200, "perKgRate": 3.0 },
+  "Bandarban": { "minCost": 200, "perKgRate": 3.0 },
+  "Feni": { "minCost": 200, "perKgRate": 3.0 },
+  "Noakhali": { "minCost": 200, "perKgRate": 3.0 },
+  "Lakshmipur": { "minCost": 200, "perKgRate": 3.0 },
+  "Cumilla": { "minCost": 200, "perKgRate": 3.0 },
+  "Brahmanbaria": { "minCost": 200, "perKgRate": 3.0 },
+  "Sylhet": { "minCost": 200, "perKgRate": 3.1 },
+  "Moulvibazar": { "minCost": 200, "perKgRate": 3.1 },
+  "Habiganj": { "minCost": 200, "perKgRate": 3.1 },
+  "Sunamganj": { "minCost": 200, "perKgRate": 3.1 }
+}
+
+  
+  /**
+{ "name": "Gazipur", "minCost": 150, "perKgRate": 2.2 },
   { "name": "Narayanganj", "minCost": 150, "perKgRate": 2.3 },
   { "name": "Manikganj", "minCost": 150, "perKgRate": 2.3 },
   { "name": "Munshiganj", "minCost": 150, "perKgRate": 2.3 },
@@ -15,7 +85,7 @@
   { "name": "Kishoreganj", "minCost": 150, "perKgRate": 2.3 },
   { "name": "Tangail", "minCost": 150, "perKgRate": 2.4 },
 
-  // --- Dhaka Mid-distance districts ---
+  
   { "name": "Cumilla", "minCost": 175, "perKgRate": 2.5 },
   { "name": "Brahmanbaria", "minCost": 175, "perKgRate": 2.6 },
   { "name": "Chandpur", "minCost": 175, "perKgRate": 2.5 },
@@ -33,7 +103,7 @@
   { "name": "Magura", "minCost": 175, "perKgRate": 2.6 },
   { "name": "Narail", "minCost": 175, "perKgRate": 2.6 },
 
-  // --- Dhaka Far-Remote districts ---
+  
   { "name": "Chattogram", "minCost": 200, "perKgRate": 2.8 },
   { "name": "Cox's Bazar", "minCost": 200, "perKgRate": 3.0 },
   { "name": "Khagrachhari", "minCost": 200, "perKgRate": 3.1 },
@@ -67,4 +137,4 @@
   { "name": "Dinajpur", "minCost": 200, "perKgRate": 2.9 },
   { "name": "Thakurgaon", "minCost": 200, "perKgRate": 2.9 },
   { "name": "Panchagarh", "minCost": 200, "perKgRate": 3.0 }
-]
+*/
