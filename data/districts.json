@@ -1,14 +1,9 @@
 {
-  // --- Dhaka ---
   "Dhaka": { "minCost": 125, "perKg": 2.0 },
-  
-  // --- Dhaka Neighboring districts ---
   "Gazipur": { "minCost": 150, "perKg": 2.2 },
   "Narayanganj": { "minCost": 150, "perKg": 2.2 },
   "Manikganj": { "minCost": 150, "perKg": 2.2 },
   "Munshiganj": { "minCost": 150, "perKg": 2.2 },
-  
-  // --- Dhaka Mid-distance districts ---
   "Tangail": { "minCost": 175, "perKg": 2.4 },
   "Kishoreganj": { "minCost": 175, "perKg": 2.4 },
   "Narsingdi": { "minCost": 175, "perKg": 2.4 },
@@ -16,8 +11,6 @@
   "Madaripur": { "minCost": 175, "perKg": 2.4 },
   "Rajbari": { "minCost": 175, "perKg": 2.4 },
   "Shariatpur": { "minCost": 175, "perKg": 2.4 },
-  
-  // --- Dhaka Far-Remote districts ---
   "Gopalganj": { "minCost": 200, "perKg": 2.6 },
   "Jamalpur": { "minCost": 200, "perKg": 2.6 },
   "Sherpur": { "minCost": 200, "perKg": 2.6 },
