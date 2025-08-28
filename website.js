@@ -50,21 +50,67 @@ async function init() {
 init();
 
 /* ================== UTILITIES ================== */
-function parseBrands(prod) {
-  if (!prod) return [];
-  const raw = prod.brands;
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw.filter(Boolean).map(s => String(s).trim());
-  // supports "Akij, BSRM, AKS"
-  return String(raw)
-    .split(",")
-    .map(s => s.trim())
-    .filter(Boolean);
+function fmtMoney(n) {
+  const num = Number(n);
+  if (!isFinite(num)) return "৳" + n;
+  return "৳" + num.toLocaleString();
 }
 
-function fmtMoney(n) {
-  try { return "৳" + Number(n).toLocaleString(); }
-  catch { return "৳" + n; }
+/**
+ * Normalize product.brands into array of { name, price }
+ * Supports:
+ * - New format: [{name, price}, ...]
+ * - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
+ * - Legacy string: "Akij, BSRM"     (uses product.price for each)
+ */
+function getBrandObjects(prod) {
+  if (!prod || prod.brands == null) return [];
+  const basePrice = Number(prod.price) || 0;
+
+  // Already in new format
+  if (Array.isArray(prod.brands) && prod.brands.length && typeof prod.brands[0] === "object") {
+    return prod.brands
+      .filter(b => b && typeof b.name === "string")
+      .map(b => ({ name: String(b.name).trim(), price: Number(b.price) || basePrice }))
+      .filter(b => b.name);
+  }
+
+  // Legacy array of names
+  if (Array.isArray(prod.brands)) {
+    return prod.brands
+      .map(x => String(x).trim())
+      .filter(Boolean)
+      .map(name => ({ name, price: basePrice }));
+  }
+
+  // Legacy comma-separated string
+  if (typeof prod.brands === "string") {
+    return prod.brands
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(name => ({ name, price: basePrice }));
+  }
+
+  return [];
+}
+
+function getBrandNames(prod) {
+  return getBrandObjects(prod).map(b => b.name);
+}
+
+function getPriceForBrand(prod, brandName) {
+  const brands = getBrandObjects(prod);
+  const found = brands.find(b => b.name === brandName);
+  if (found) return Number(found.price) || 0;
+  // fallback to product.price if no brand match
+  return Number(prod.price) || 0;
+}
+
+function getMinPrice(prod) {
+  const brands = getBrandObjects(prod);
+  if (brands.length === 0) return Number(prod.price) || 0;
+  return Math.min(...brands.map(b => Number(b.price) || Infinity));
 }
 
 /* ================== PRODUCTS ================== */
@@ -73,9 +119,12 @@ function renderProducts() {
 
   const filtered = products.filter((p) => {
     const q = SEARCH_QUERY;
+    const brandNames = getBrandNames(p).join(" ").toLowerCase();
     const matchesSearch =
       p.name.toLowerCase().includes(q) ||
-      (p.brand && p.brand.toLowerCase().includes(q));
+      (p.brand && p.brand.toLowerCase().includes(q)) ||
+      brandNames.includes(q);
+
     const matchesCategory = ACTIVE_CATEGORY === "all" || p.category === ACTIVE_CATEGORY;
     return matchesSearch && matchesCategory;
   });
@@ -86,16 +135,23 @@ function renderProducts() {
   }
 
   productListEl.innerHTML = filtered.map((p) => {
+    const minPrice = getMinPrice(p);
+    const brands = getBrandObjects(p);
+    const brandBadge = brands.length
+      ? `<span class="inline-block text-[11px] text-neutral-600 bg-neutral-100 border rounded px-2 py-0.5 mt-1">${brands.length} brand${brands.length>1?'s':''}</span>`
+      : "";
+
     return `
       <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white">
         <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded">
         <h3 class="text-lg font-semibold mt-2">${p.name}</h3>
-        <p class="text-sm text-gray-500">${p.brand || ""}</p>
-        <p class="text-gray-700 font-bold">${fmtMoney(p.price)}</p>
-        <p class="text-xs text-gray-500">Unit: ${p.unit}</p>
+        <p class="text-sm text-gray-500">${p.origin || ""}</p>
+        <p class="text-gray-700 font-bold">From ${fmtMoney(minPrice)}</p>
+        <p class="text-xs text-gray-500">Unit: ${p.unit || "-"}</p>
         <p class="text-xs text-gray-500">Weight: ${p.weight} kg</p>
-        <button onclick="addToCart('${p.id}')" 
-          class="mt-2 w-full bg-black text-white py-2 rounded hover:bg-gray-800">
+        ${brandBadge}
+        <button onclick="addToCart('${p.id}')"
+          class="mt-3 w-full bg-black text-white py-2 rounded hover:bg-gray-800">
           Add to Cart
         </button>
       </div>`;
@@ -138,26 +194,33 @@ function addToCart(id) {
   const product = products.find((p) => p.id === id);
   if (!product) return;
 
-  // If item already in cart (ignoring brand for add), just bump qty
-  const itemIndex = CART.findIndex((i) => i.id === id);
-  if (itemIndex > -1) {
-    CART[itemIndex].qty += 1;
+  const brandObjs = getBrandObjects(product);
+  const defaultBrandName = brandObjs[0]?.name || "";
+  const defaultUnitPrice = brandObjs[0]?.price ?? (Number(product.price) || 0);
+
+  // If item already in cart with the same product & same brand, bump qty.
+  // If exists but brand differs, we'll add as a separate line item.
+  const existingIndex = CART.findIndex(
+    i => i.id === id && i.selectedBrand === defaultBrandName
+  );
+
+  if (existingIndex > -1) {
+    CART[existingIndex].qty += 1;
   } else {
-    const brandOptions = parseBrands(product);
     CART.push({
       id: product.id,
       name: product.name,
       image: product.image,
-      price: product.price,
-      weight: product.weight,
       unit: product.unit,
+      weight: product.weight,
       qty: 1,
-      // default to first available brand, otherwise empty
-      brand: brandOptions[0] || ""
+      selectedBrand: defaultBrandName,
+      unitPrice: defaultUnitPrice
     });
   }
+
   saveCart();
-  openCart(); // bring cart into view after adding
+  openCart();
 }
 
 function removeFromCart(index) {
@@ -166,22 +229,23 @@ function removeFromCart(index) {
 }
 
 function updateQty(index, qty) {
-  if (CART[index]) {
-    const safeQty = Number.isFinite(qty) ? Math.floor(qty) : 1;
-    if (safeQty <= 0) {
-      removeFromCart(index);
-    } else {
-      CART[index].qty = safeQty;
-      saveCart();
-    }
+  if (!CART[index]) return;
+  const safeQty = Number.isFinite(qty) ? Math.floor(qty) : 1;
+  if (safeQty <= 0) {
+    removeFromCart(index);
+    return;
   }
+  CART[index].qty = safeQty;
+  saveCart();
 }
 
-function updateBrand(index, brand) {
-  if (CART[index]) {
-    CART[index].brand = brand;
-    saveCart();
-  }
+function updateBrand(index, brandName) {
+  if (!CART[index]) return;
+  const prod = products.find(p => p.id === CART[index].id);
+  const newPrice = getPriceForBrand(prod, brandName);
+  CART[index].selectedBrand = brandName;
+  CART[index].unitPrice = newPrice;
+  saveCart();
 }
 
 function saveCart() {
@@ -219,19 +283,22 @@ function renderCart() {
   let totalWeight = 0;
 
   CART.forEach((item, index) => {
-    subtotal += item.price * item.qty;
-    totalWeight += item.weight * item.qty;
-
     const product = products.find(p => p.id === item.id) || {};
-    const brands = parseBrands(product);
-    const showBrandSelect = brands.length > 0;
+    const brandObjs = getBrandObjects(product);
 
-    const brandOptionsHTML = showBrandSelect
+    subtotal += (item.unitPrice || 0) * item.qty;
+    totalWeight += (item.weight || 0) * item.qty;
+
+    const brandSelectHTML = brandObjs.length
       ? `
         <label class="text-xs text-neutral-500 mt-2 block">Brand</label>
         <select onchange="updateBrand(${index}, this.value)"
           class="w-full border rounded text-sm px-2 py-1">
-          ${brands.map(b => `<option value="${b}" ${item.brand === b ? "selected" : ""}>${b}</option>`).join("")}
+          ${brandObjs.map(b => `
+            <option value="${b.name}" ${item.selectedBrand === b.name ? "selected" : ""}>
+              ${b.name} — ${fmtMoney(b.price)}
+            </option>
+          `).join("")}
         </select>
       `
       : "";
@@ -243,8 +310,8 @@ function renderCart() {
       <img src="${item.image}" alt="${item.name}" class="h-14 w-14 rounded-lg object-cover border" />
       <div class="flex-1">
         <h4 class="font-medium text-sm">${item.name}</h4>
-        <p class="text-xs text-neutral-500">${fmtMoney(item.price)} per ${item.unit || "unit"}</p>
-        ${brandOptionsHTML}
+        <p class="text-xs text-neutral-500">${fmtMoney(item.unitPrice)} per ${item.unit || "unit"}</p>
+        ${brandSelectHTML}
         <div class="flex items-center gap-2 mt-2">
           <button onclick="updateQty(${index}, ${item.qty - 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">–</button>
           <input type="number" min="1" value="${item.qty}"
@@ -254,7 +321,7 @@ function renderCart() {
         </div>
       </div>
       <div class="flex flex-col items-end gap-2">
-        <span class="font-semibold">${fmtMoney(item.price * item.qty)}</span>
+        <span class="font-semibold">${fmtMoney((item.unitPrice || 0) * item.qty)}</span>
         <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
           <i data-lucide="trash-2" class="h-4 w-4"></i>
         </button>
