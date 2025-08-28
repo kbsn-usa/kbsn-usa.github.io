@@ -19,6 +19,35 @@ const searchInputEl = document.getElementById("searchInput");
 const categoryFiltersEl = document.getElementById("categoryFilters");
 const emptyCartEl = document.getElementById("empty-cart");
 
+// --- Product Details Modal (create once) ---
+const modal = document.createElement("div");
+modal.id = "productModal";
+modal.style.display = "none";
+modal.style.position = "fixed";
+modal.style.top = "0";
+modal.style.left = "0";
+modal.style.width = "100%";
+modal.style.height = "100%";
+modal.style.background = "rgba(0,0,0,0.6)";
+modal.style.zIndex = "1000";
+modal.innerHTML = `
+  <div id="modalContent" style="background:#fff; margin:5% auto; padding:20px; width:80%; max-width:600px; border-radius:10px; position:relative;">
+    <span id="modalClose" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:22px;">&times;</span>
+    <div id="modalBody"></div>
+  </div>
+`;
+document.body.appendChild(modal);
+
+// Close modal function
+document.getElementById("modalClose").onclick = () => {
+  modal.style.display = "none";
+};
+
+// Close if clicked outside
+window.onclick = (e) => {
+  if (e.target === modal) modal.style.display = "none";
+};
+
 /* ================== DISTRICTS ================== */
 const allDistricts = [
   "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
@@ -135,6 +164,7 @@ function renderProducts() {
     return;
   }
 
+  // --- Step 1: Render cards with a data attribute ---
   productListEl.innerHTML = filtered.map((p) => {
     const minPrice = getMinPrice(p);
     const brands = getBrandObjects(p);
@@ -143,7 +173,8 @@ function renderProducts() {
       : "";
 
     return `
-      <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white">
+      <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white cursor-pointer product-card"
+           data-id="${p.id}">
         <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded">
         <h3 class="text-lg font-semibold mt-2">${p.name}</h3>
         <p class="text-sm text-gray-500">${p.origin || ""}</p>
@@ -157,6 +188,37 @@ function renderProducts() {
         </button>
       </div>`;
   }).join("");
+
+  // --- Step 2: Attach click listeners after rendering ---
+  document.querySelectorAll(".product-card").forEach(card => {
+    const id = card.dataset.id;
+    const product = products.find(p => p.id === id);
+    card.addEventListener("click", (e) => {
+      // avoid conflict when clicking "Add to Cart"
+      if (e.target.tagName.toLowerCase() === "button") return;
+      showProductDetails(product);
+    });
+  });
+}
+
+function showProductDetails(product) {
+  const body = document.getElementById("modalBody");
+  body.innerHTML = `
+    <h2>${product.name}</h2>
+    <img src="${product.image}" alt="${product.name}" style="width:100%; max-height:250px; object-fit:contain; margin:10px 0;">
+    <p><strong>Category:</strong> ${product.category}</p>
+    <p><strong>Origin:</strong> ${product.origin}</p>
+    <p><strong>Quality:</strong> ${product.quality}</p>
+    <p><strong>Unit:</strong> ${product.unit}</p>
+    <p><strong>Lead Time:</strong> ${product.leadTimeDays} days</p>
+    <p><strong>Rating:</strong> ⭐ ${product.rating}</p>
+    <p><strong>Weight:</strong> ${product.weight} kg</p>
+    <h3>Available Brands & Prices</h3>
+    <ul>
+      ${product.brands.map(b => `<li>${b.name}: ${b.price} ৳</li>`).join("")}
+    </ul>
+  `;
+  modal.style.display = "block";
 }
 
 /* ================== SEARCH ================== */
