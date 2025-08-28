@@ -305,5 +305,38 @@ qForm.addEventListener("submit", function(e){
 });
   </script>
   <div id="toast-container" class="fixed top-5 right-5 space-y-3 z-50"></div>
+  <!-- Product Details Modal -->
+<div id="productModal" class="modal hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+    <button id="closeModal" class="absolute top-2 right-2 text-gray-600 hover:text-black text-2xl">&times;</button>
+    
+    <img id="modalImage" src="" alt="" class="w-40 h-40 object-cover mx-auto mb-4">
+    <h2 id="modalName" class="text-xl font-bold mb-2"></h2>
+    <p id="modalCategory" class="text-sm text-gray-500"></p>
+    <p id="modalOrigin" class="text-sm text-gray-500"></p>
+    <p id="modalQuality" class="text-sm text-gray-500"></p>
+    <p id="modalUnit" class="text-sm text-gray-500"></p>
+    <p id="modalRating" class="text-sm text-yellow-500 mb-3"></p>
+
+    <!-- Brand selection -->
+    <label class="block mb-2">Select Brand:</label>
+    <select id="modalBrand" class="w-full border rounded p-2 mb-4"></select>
+
+    <!-- Quantity -->
+    <div class="flex items-center mb-4">
+      <button id="qtyMinus" class="px-3 py-1 bg-gray-200">-</button>
+      <input type="number" id="modalQty" value="1" min="1" class="w-16 text-center border mx-2">
+      <button id="qtyPlus" class="px-3 py-1 bg-gray-200">+</button>
+    </div>
+
+    <!-- Price -->
+    <p class="text-lg font-bold mb-4">Price: <span id="modalPrice"></span> ৳</p>
+
+    <!-- Add to cart -->
+    <button id="addToCartFromModal" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      Add to Cart
+    </button>
+  </div>
+</div>
 </body>
 </html>
