@@ -330,6 +330,9 @@ function openProductModal(productId) {
 }
 
 function wireModalStaticHandlers() {
+  const modal = document.getElementById("productModal");
+  if (!modal) return; // if the modal HTML isn't on this page, skip wiring
+
   const closeBtn = document.getElementById("closeModal");
   const minusBtn = document.getElementById("qtyMinus");
   const plusBtn = document.getElementById("qtyPlus");
@@ -343,6 +346,11 @@ function wireModalStaticHandlers() {
       if (modal) modal.classList.add("hidden");
     });
   }
+  // Close on backdrop click
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.add("hidden");
+  });
+
   if (minusBtn) {
     minusBtn.addEventListener("click", () => {
       const qtyEl = document.getElementById("modalQty");
