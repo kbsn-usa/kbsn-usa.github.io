@@ -22,26 +22,25 @@ const categoryFiltersEl = document.getElementById("categoryFilters");
 const emptyCartEl = document.getElementById("empty-cart");          
           
 /* ================== INIT ================== */          
-async function init() {          
-  try {          
-    const [prodRes, distRes] = await Promise.all([          
-      fetch("https://github.com/kbsn-usa/kbsn-usa.github.io/blob/main/data/products.json"),          
-      fetch("https://github.com/kbsn-usa/kbsn-usa.github.io/blob/main/data/districts.json"),          
-    ]);          
-    products = await prodRes.json();          
-    districtRates = await distRes.json();          
-          
-    renderDistricts();          
-    initCategoryIfMissing();          
-    renderCategories();          
-    renderProducts();          
-    renderCart();          
-    wireModalStaticHandlers();          
-  } catch (err) {          
-    console.error("Error loading data:", err);          
-  }          
-}          
-init();          
+async function init() {
+  try {
+    const [prodRes, distRes] = await Promise.all([
+      fetch("https://raw.githubusercontent.com/kbsn-usa/kbsn-usa.github.io/main/data/products.json"),
+      fetch("https://raw.githubusercontent.com/kbsn-usa/kbsn-usa.github.io/main/data/districts.json"),
+    ]);
+    products = await prodRes.json();
+    districtRates = await distRes.json();
+
+    renderDistricts();
+    initCategoryIfMissing();
+    renderCategories();
+    renderProducts();
+    renderCart();
+    wireModalStaticHandlers();
+  } catch (err) {
+    console.error("Error loading data:", err);
+  }
+}
           
 /* ================== UTILITIES ================== */          
 function fmtMoney(n) {          
