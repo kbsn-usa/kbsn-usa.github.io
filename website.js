@@ -204,7 +204,7 @@ function renderProducts() {
 function showProductDetails(product) {
   const body = document.getElementById("modalBody");
   body.innerHTML = `
-    <h2 class=" font-semibold">${product.name}</h2>
+    <h2 class="text-lg font-semibold mt-2">${product.name}</h2>
     <img src="${product.image}" alt="${product.name}" style="width:100%; max-height:250px; object-fit:contain; margin:10px 0;">
     <p><strong>Category:</strong> ${product.category}</p>
     <p><strong>Origin:</strong> ${product.origin}</p>
