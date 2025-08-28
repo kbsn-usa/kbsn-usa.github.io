@@ -1,6 +1,6 @@
 /* ================== GLOBAL STATE ================== */
 let products = [];
-let districtRates = []; // loaded from data/districts.json
+let districtRates = [];
 
 let CART = JSON.parse(localStorage.getItem("bpc-CART")) || [];
 let DISTRICT = localStorage.getItem("bpc-DISTRICTS") || "";
@@ -36,7 +36,7 @@ async function init() {
     renderCategories();
     renderProducts();
     renderCart();
-    wireModalStaticHandlers(); // one-time modal close/qty handlers
+    wireModalStaticHandlers();
   } catch (err) {
     console.error("Error loading data:", err);
   }
@@ -50,13 +50,6 @@ function fmtMoney(n) {
   return "৳" + num.toLocaleString();
 }
 
-/**
- * Normalize product.brands into array of { name, price }
- * Supports:
- * - New format: [{name, price}, ...]
- * - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
- * - Legacy string: "Akij, BSRM"     (uses product.price for each)
- */
 function getBrandObjects(prod) {
   if (!prod || prod.brands == null) return [];
   const basePrice = Number(prod.price) || 0;
