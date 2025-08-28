@@ -39,6 +39,7 @@ async function init() {
   try {
     const res = await fetch("data/products.json");
     products = await res.json();
+    await loadDeliveryRates();
     renderDistricts();
     renderCategories();
     renderProducts();
@@ -253,14 +254,25 @@ function saveCart() {
   renderCart();
 }
 
+/* ================== DELIVERY COST ================== */
+let deliveryRates = {}; // loaded from districts.json
+
+async function loadDeliveryRates() {
+  try {
+    const res = await fetch("data/districts.json");
+    const data = await res.json();
+    deliveryRates = data; // example: { "Dhaka": { perKg: 2.0, minCost: 125 }, ... }
+  } catch (err) {
+    console.error("Error loading delivery rates:", err);
+  }
+}
+
 function getDeliveryCost(totalWeight) {
-  const insideDhaka = [
-    "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
-    "Tangail","Kishoreganj","Narsingdi"
-  ];
-  const perKgRate = insideDhaka.includes(DISTRICT) ? 2.1 : 3.5;
-  const minCost = insideDhaka.includes(DISTRICT) ? 150 : 200;
-  const calc = totalWeight * perKgRate;
+  if (!DISTRICT || !deliveryRates[DISTRICT]) {
+    return 0; // default if district not selected
+  }
+  const { perKg, minCost } = deliveryRates[DISTRICT];
+  const calc = totalWeight * perKg;
   return Math.max(calc, minCost);
 }
 
