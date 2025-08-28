@@ -20,6 +20,7 @@ const districtSelectEl = document.getElementById("districtSelect");
 const searchInputEl = document.getElementById("searchInput");
 const categoryFiltersEl = document.getElementById("categoryFilters");
 const emptyCartEl = document.getElementById("empty-cart");
+const detailsSheetEl = document.getElementById("detailsSheet");
 
 /* ================== INIT ================== */
 async function init() {
@@ -36,7 +37,6 @@ async function init() {
     renderCategories();
     renderProducts();
     renderCart();
-    wireModalStaticHandlers();
   } catch (err) {
     console.error("Error loading data:", err);
   }
@@ -54,29 +54,22 @@ function getBrandObjects(prod) {
   if (!prod || prod.brands == null) return [];
   const basePrice = Number(prod.price) || 0;
 
-  // Already objects
-  if (Array.isArray(prod.brands) && prod.brands.length && typeof prod.brands[0] === "object") {
-    return prod.brands
-      .filter((b) => b && typeof b.name === "string")
-      .map((b) => ({ name: String(b.name).trim(), price: Number(b.price) || basePrice }))
-      .filter((b) => b.name);
+  if (Array.isArray(prod.brands) && typeof prod.brands[0] === "object") {
+    return prod.brands.map((b) => ({
+      name: String(b.name).trim(),
+      price: Number(b.price) || basePrice,
+    }));
   }
 
-  // Array of names
   if (Array.isArray(prod.brands)) {
-    return prod.brands
-      .map((x) => String(x).trim())
-      .filter(Boolean)
-      .map((name) => ({ name, price: basePrice }));
+    return prod.brands.map((x) => ({ name: String(x).trim(), price: basePrice }));
   }
 
-  // Comma-separated string
   if (typeof prod.brands === "string") {
-    return prod.brands
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map((name) => ({ name, price: basePrice }));
+    return prod.brands.split(",").map((s) => ({
+      name: s.trim(),
+      price: basePrice,
+    }));
   }
 
   return [];
@@ -89,17 +82,16 @@ function getBrandNames(prod) {
 function getPriceForBrand(prod, brandName) {
   const brands = getBrandObjects(prod);
   const found = brands.find((b) => b.name === brandName);
-  if (found) return Number(found.price) || 0;
-  return Number(prod.price) || 0; // fallback
+  return found ? found.price : Number(prod.price) || 0;
 }
 
 function getMinPrice(prod) {
   const brands = getBrandObjects(prod);
-  if (brands.length === 0) return Number(prod.price) || 0;
-  return Math.min(...brands.map((b) => Number(b.price) || Infinity));
+  if (!brands.length) return Number(prod.price) || 0;
+  return Math.min(...brands.map((b) => b.price));
 }
 
-/* ================== DELIVERY (districts.json) ================== */
+/* ================== DELIVERY ================== */
 function getDeliveryConfigByDistrict(districtName) {
   if (!districtRates || !districtRates.length) {
     return { name: "", minCost: 0, perKgRate: 0 };
@@ -123,7 +115,7 @@ function renderProducts() {
     const brandNames = getBrandNames(p).join(" ").toLowerCase();
     const matchesSearch =
       p.name.toLowerCase().includes(q) ||
-      (p.brand && p.brand.toLowerCase().includes(q)) ||
+      (p.origin && p.origin.toLowerCase().includes(q)) ||
       brandNames.includes(q);
 
     const matchesCategory = ACTIVE_CATEGORY === "all" || p.category === ACTIVE_CATEGORY;
@@ -136,32 +128,18 @@ function renderProducts() {
   }
 
   productListEl.innerHTML = filtered
-    .map((p) => {
-      const minPrice = getMinPrice(p);
-      const brands = getBrandObjects(p);
-      const brandBadge = brands.length
-        ? `<span class="inline-block text-[11px] text-neutral-600 bg-neutral-100 border rounded px-2 py-0.5 mt-1">${brands.length} brand${
-            brands.length > 1 ? "s" : ""
-          }</span>`
-        : "";
-
-      // Card is clickable to open modal; button does quick add (and stops propagation)
-      return `
+    .map(
+      (p) => `
       <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white cursor-pointer"
-           onclick="openProductModal('${p.id}')">
+           onclick="openDetailsSheet('${p.id}')">
         <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded">
         <h3 class="text-lg font-semibold mt-2">${p.name}</h3>
         <p class="text-sm text-gray-500">${p.origin || ""}</p>
-        <p class="text-gray-700 font-bold">From ${fmtMoney(minPrice)}</p>
+        <p class="text-gray-700 font-bold">From ${fmtMoney(getMinPrice(p))}</p>
         <p class="text-xs text-gray-500">Unit: ${p.unit || "-"}</p>
         <p class="text-xs text-gray-500">Weight: ${p.weight} kg</p>
-        ${brandBadge}
-        <button onclick="event.stopPropagation(); addToCart('${p.id}')"
-          class="mt-3 w-full bg-black text-white py-2 rounded hover:bg-gray-800">
-          Add to Cart
-        </button>
-      </div>`;
-    })
+      </div>`
+    )
     .join("");
 
   if (window.lucide && lucide.createIcons) lucide.createIcons();
@@ -183,15 +161,14 @@ function renderCategories() {
   categoryFiltersEl.innerHTML = categories
     .map(
       (cat) => `
-    <button
-      onclick="setCategory('${cat}')"
+    <button onclick="setCategory('${cat}')"
       class="px-3 py-1 rounded-full border ${
-        ACTIVE_CATEGORY === cat ? "bg-black text-white" : "bg-white text-gray-600 hover:bg-gray-100"
-      }"
-    >
+        ACTIVE_CATEGORY === cat
+          ? "bg-black text-white"
+          : "bg-white text-gray-600 hover:bg-gray-100"
+      }">
       ${cat.charAt(0).toUpperCase() + cat.slice(1)}
-    </button>
-  `
+    </button>`
     )
     .join("");
 }
@@ -203,7 +180,6 @@ function setCategory(cat) {
 }
 
 /* ================== CART ================== */
-// Extended to allow optional brand + qty
 function addToCart(id, brandName = null, qty = 1) {
   const product = products.find((p) => p.id === id);
   if (!product) return;
@@ -211,10 +187,13 @@ function addToCart(id, brandName = null, qty = 1) {
   const brandObjs = getBrandObjects(product);
   const defaultBrandName = brandName ?? (brandObjs[0]?.name || "");
   const defaultUnitPrice =
-    brandName != null ? getPriceForBrand(product, brandName) : brandObjs[0]?.price ?? (Number(product.price) || 0);
+    brandName != null
+      ? getPriceForBrand(product, brandName)
+      : brandObjs[0]?.price ?? Number(product.price) || 0;
 
-  // If item already in cart with same product & same brand, bump qty
-  const existingIndex = CART.findIndex((i) => i.id === id && i.selectedBrand === defaultBrandName);
+  const existingIndex = CART.findIndex(
+    (i) => i.id === id && i.selectedBrand === defaultBrandName
+  );
 
   if (existingIndex > -1) {
     CART[existingIndex].qty += Math.max(1, Number(qty) || 1);
@@ -265,130 +244,59 @@ function saveCart() {
   renderCart();
 }
 
-/* ================== PRODUCT MODAL ================== */
-let selectedProduct = null;
-
-function openProductModal(productId) {
+/* ================== DETAILS SHEET ================== */
+function openDetailsSheet(productId) {
   const product = products.find((p) => p.id === productId);
-  if (!product) return;
-  selectedProduct = product;
+  if (!product || !detailsSheetEl) return;
 
-  const m = {
-    modal: document.getElementById("productModal"),
-    image: document.getElementById("modalImage"),
-    name: document.getElementById("modalName"),
-    category: document.getElementById("modalCategory"),
-    origin: document.getElementById("modalOrigin"),
-    quality: document.getElementById("modalQuality"),
-    unit: document.getElementById("modalUnit"),
-    rating: document.getElementById("modalRating"),
-    brand: document.getElementById("modalBrand"),
-    qty: document.getElementById("modalQty"),
-    price: document.getElementById("modalPrice"),
-  };
-
-  if (!m.modal) return; // modal HTML not present
-
-  m.image.src = product.image || "";
-  m.image.alt = product.name || "";
-  m.name.textContent = product.name || "";
-  m.category.textContent = "Category: " + (product.category || "-");
-  m.origin.textContent = "Origin: " + (product.origin || "-");
-  m.quality.textContent = "Quality: " + (product.quality || "-");
-  m.unit.textContent = "Unit: " + (product.unit || "-");
-  m.rating.textContent = "Rating: " + (product.rating ?? "-");
-
-  // Populate brand options from normalized brand objects
   const brandObjs = getBrandObjects(product);
-  m.brand.innerHTML = "";
-  if (brandObjs.length) {
-    brandObjs.forEach((b) => {
-      const opt = document.createElement("option");
-      opt.value = b.name;
-      opt.textContent = `${b.name} (${fmtMoney(b.price)})`;
-      m.brand.appendChild(opt);
-    });
-  } else {
-    const opt = document.createElement("option");
-    const base = Number(product.price) || 0;
-    opt.value = "";
-    opt.textContent = `Default (${fmtMoney(base)})`;
-    m.brand.appendChild(opt);
-  }
 
-  m.qty.value = 1;
-  updateModalPrice();
+  detailsSheetEl.innerHTML = `
+    <button onclick="closeDetailsSheet()" class="mb-4 text-gray-500 hover:text-gray-800">
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+    <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover rounded-lg mb-4">
+    <h2 class="text-2xl font-bold mb-1">${product.name}</h2>
+    <p class="text-sm text-gray-500 mb-2">${product.origin || ""}</p>
+    <p class="text-gray-700 mb-1">Category: ${product.category}</p>
+    <p class="text-gray-700 mb-1">Quality: ${product.quality}</p>
+    <p class="text-gray-700 mb-1">Unit: ${product.unit}</p>
+    <p class="text-gray-700 mb-1">Weight: ${product.weight} kg</p>
+    <p class="text-gray-700 mb-4">Rating: ${product.rating ?? "-"}</p>
 
-  m.modal.classList.remove("hidden");
+    <label class="block text-sm font-medium mb-1">Choose Brand</label>
+    <select id="detailsBrand" class="w-full border rounded-lg px-3 py-2 mb-4">
+      ${brandObjs
+        .map((b) => `<option value="${b.name}">${b.name} — ${fmtMoney(b.price)}</option>`)
+        .join("")}
+    </select>
+
+    <div class="flex items-center gap-3 mb-4">
+      <label class="text-sm font-medium">Qty:</label>
+      <input id="detailsQty" type="number" value="1" min="1" class="w-20 border rounded px-2 py-1">
+    </div>
+
+    <button onclick="addFromDetails('${product.id}')"
+      class="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800">
+      Add to Cart
+    </button>
+  `;
+
+  detailsSheetEl.classList.remove("hidden");
+  if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
 
-function wireModalStaticHandlers() {
-  const modal = document.getElementById("productModal");
-  if (!modal) return; // if the modal HTML isn't on this page, skip wiring
-
-  const closeBtn = document.getElementById("closeModal");
-  const minusBtn = document.getElementById("qtyMinus");
-  const plusBtn = document.getElementById("qtyPlus");
-  const qtyInput = document.getElementById("modalQty");
-  const brandSel = document.getElementById("modalBrand");
-  const addBtn = document.getElementById("addToCartFromModal");
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      const modal = document.getElementById("productModal");
-      if (modal) modal.classList.add("hidden");
-    });
-  }
-  // Close on backdrop click
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.classList.add("hidden");
-  });
-
-  if (minusBtn) {
-    minusBtn.addEventListener("click", () => {
-      const qtyEl = document.getElementById("modalQty");
-      if (!qtyEl) return;
-      let qty = parseInt(qtyEl.value || "1", 10);
-      if (qty > 1) {
-        qtyEl.value = qty - 1;
-        updateModalPrice();
-      }
-    });
-  }
-  if (plusBtn) {
-    plusBtn.addEventListener("click", () => {
-      const qtyEl = document.getElementById("modalQty");
-      if (!qtyEl) return;
-      let qty = parseInt(qtyEl.value || "1", 10);
-      qtyEl.value = qty + 1;
-      updateModalPrice();
-    });
-  }
-  if (qtyInput) qtyInput.addEventListener("input", updateModalPrice);
-  if (brandSel) brandSel.addEventListener("change", updateModalPrice);
-  if (addBtn) {
-    addBtn.addEventListener("click", () => {
-      if (!selectedProduct) return;
-      const brand = (document.getElementById("modalBrand") || {}).value ?? null;
-      const qty = parseInt((document.getElementById("modalQty") || {}).value || "1", 10);
-      addToCart(selectedProduct.id, brand, qty);
-      const modal = document.getElementById("productModal");
-      if (modal) modal.classList.add("hidden");
-    });
-  }
+function closeDetailsSheet() {
+  if (detailsSheetEl) detailsSheetEl.classList.add("hidden");
 }
 
-function updateModalPrice() {
-  if (!selectedProduct) return;
-  const brandSel = document.getElementById("modalBrand");
-  const qtyEl = document.getElementById("modalQty");
-  const priceEl = document.getElementById("modalPrice");
-  if (!brandSel || !qtyEl || !priceEl) return;
-
-  const brand = brandSel.value || null;
-  const qty = Math.max(1, parseInt(qtyEl.value || "1", 10));
-  const unitPrice = brand ? getPriceForBrand(selectedProduct, brand) : Number(selectedProduct.price) || 0;
-  priceEl.textContent = fmtMoney(unitPrice * qty);
+function addFromDetails(productId) {
+  const brandSel = document.getElementById("detailsBrand");
+  const qtyEl = document.getElementById("detailsQty");
+  const brand = brandSel ? brandSel.value : null;
+  const qty = qtyEl ? parseInt(qtyEl.value) || 1 : 1;
+  addToCart(productId, brand, qty);
+  closeDetailsSheet();
 }
 
 /* ================== CART RENDER ================== */
@@ -410,29 +318,8 @@ function renderCart() {
   let totalWeight = 0;
 
   CART.forEach((item, index) => {
-    const product = products.find((p) => p.id === item.id) || {};
-    const brandObjs = getBrandObjects(product);
-
     subtotal += (item.unitPrice || 0) * item.qty;
     totalWeight += (item.weight || 0) * item.qty;
-
-    const brandSelectHTML = brandObjs.length
-      ? `
-        <label class="text-xs text-neutral-500 mt-2 block">Brand</label>
-        <select onchange="updateBrand(${index}, this.value)"
-          class="w-full border rounded text-sm px-2 py-1">
-          ${brandObjs
-            .map(
-              (b) => `
-            <option value="${b.name}" ${item.selectedBrand === b.name ? "selected" : ""}>
-              ${b.name} — ${fmtMoney(b.price)}
-            </option>
-          `
-            )
-            .join("")}
-        </select>
-      `
-      : "";
 
     const div = document.createElement("div");
     div.className = "flex items-center gap-4 p-3 border rounded-xl bg-white shadow-sm mb-2";
@@ -441,14 +328,13 @@ function renderCart() {
       <img src="${item.image}" alt="${item.name}" class="h-14 w-14 rounded-lg object-cover border" />
       <div class="flex-1">
         <h4 class="font-medium text-sm">${item.name}</h4>
-        <p class="text-xs text-neutral-500">${fmtMoney(item.unitPrice)} per ${item.unit || "unit"}</p>
-        ${brandSelectHTML}
+        <p class="text-xs text-neutral-500">${fmtMoney(item.unitPrice)} per ${item.unit}</p>
         <div class="flex items-center gap-2 mt-2">
-          <button onclick="updateQty(${index}, ${item.qty - 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">–</button>
+          <button onclick="updateQty(${index}, ${item.qty - 1})" class="px-2 py-1 bg-neutral-200 rounded">–</button>
           <input type="number" min="1" value="${item.qty}"
             onchange="updateQty(${index}, parseInt(this.value) || 1)"
             class="w-14 border rounded text-center text-sm" />
-          <button onclick="updateQty(${index}, ${item.qty + 1})" class="px-2 py-1 bg-neutral-200 rounded hover:bg-neutral-300">+</button>
+          <button onclick="updateQty(${index}, ${item.qty + 1})" class="px-2 py-1 bg-neutral-200 rounded">+</button>
         </div>
       </div>
       <div class="flex flex-col items-end gap-2">
@@ -470,18 +356,14 @@ function renderCart() {
     <div class="space-y-2 text-sm">
       <div class="flex justify-between"><span>Subtotal</span><span>${fmtMoney(subtotal)}</span></div>
       <div class="flex justify-between">
-        <span>Delivery (${DISTRICT || "Select district"} — min ${fmtMoney(deliveryCfg.minCost)}, ${deliveryCfg.perKgRate}/kg)</span>
+        <span>Delivery (${DISTRICT || "Select district"})</span>
         <span>${fmtMoney(deliveryCost)}</span>
       </div>
-      <div class="flex justify-between"><span>Deliver To</span><span>${DISTRICT || "Not selected"}</span></div>
       <div class="flex justify-between font-bold text-base pt-1 border-t"><span>Total</span><span>${fmtMoney(grandTotal)}</span></div>
     </div>
     <button class="w-full mt-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow hover:opacity-90 transition">
       Proceed to Checkout
     </button>
-    <p class="text-[11px] text-neutral-500 mt-2 text-center">
-      Payments: bKash • Nagad • Bank • COD | VAT invoice available
-    </p>
   `;
 
   if (cartCountEl) {
@@ -508,8 +390,6 @@ if (cartOverlayEl) cartOverlayEl.addEventListener("click", closeCart);
 /* ================== DISTRICT SELECT ================== */
 function renderDistricts() {
   if (!districtSelectEl) return;
-
-  // Build options from districts.json to avoid drift
   const names = (districtRates || []).map((d) => d.name);
 
   districtSelectEl.innerHTML = `
@@ -526,19 +406,18 @@ function renderDistricts() {
   });
 }
 
-/* ================== CATEGORY INIT (after products load) ================== */
+/* ================== CATEGORY INIT ================== */
 function initCategoryIfMissing() {
   if (!products.some((p) => p.category === ACTIVE_CATEGORY)) {
     ACTIVE_CATEGORY = "all";
   }
 }
 
-/* ================== EXPOSED (for inline handlers) ================== */
+/* ================== EXPOSED ================== */
 window.setCategory = setCategory;
 window.addToCart = addToCart;
 window.updateQty = updateQty;
-window.updateBrand = updateBrand;
 window.removeFromCart = removeFromCart;
-window.openCart = openCart;
-window.closeCart = closeCart;
-window.openProductModal = openProductModal;
+window.openDetailsSheet = openDetailsSheet;
+window.closeDetailsSheet = closeDetailsSheet;
+window.addFromDetails = addFromDetails;
