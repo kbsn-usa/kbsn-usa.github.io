@@ -3,90 +3,102 @@
     "id": "p1",
     "name": "Solid Clay Bricks (1st Class)",
     "category": "bricks",
-    "brand": "As per Brands",
     "origin": "Tongi Kiln, Gazipur",
     "quality": "Premium",
     "unit": "per pcs",
-    "price": 11,
     "leadTimeDays": 2,
     "rating": 4.7,
     "weight": 2.2,
-    "brands": ["Akij Bricks", "Eco Bricks", "Mir Concretes"],
+    "brands": [
+      { "name": "Akij Bricks", "price": 11 },
+      { "name": "Eco Bricks", "price": 12 },
+      { "name": "Mir Concretes", "price": 10.5 }
+    ],
     "image": "https://bpcproc.com/assets/Solid%20Clay%20Bricks%20(1st%20Class).webp"
   },
   {
     "id": "p2",
     "name": "60 Grade Rod (12mm)",
     "category": "rod",
-    "brand": "As per Brands",
     "origin": "Plant, Chattogram",
     "quality": "Premium",
     "unit": "per ton",
-    "price": 88500,
     "leadTimeDays": 3,
     "rating": 4.8,
     "weight": 1000,
-    "brands": ["RSRM", "BSRM", "AKS"],
+    "brands": [
+      { "name": "RSRM", "price": 88500 },
+      { "name": "BSRM", "price": 89000 },
+      { "name": "AKS", "price": 88000 }
+    ],
     "image": "https://bpcproc.com/assets/60%20Grade%20Rod%20(12mm).webp"
   },
   {
     "id": "p3",
     "name": "OPC Cement (50kg)",
     "category": "cement",
-    "brand": "As per Brands",
     "origin": "Mongla, Khulna",
     "quality": "Standard",
     "unit": "per bag",
-    "price": 510,
     "leadTimeDays": 1,
     "rating": 4.5,
     "weight": 50,
-    "brands": ["Premier Cement", "Sha Cement", "Mir Cement"],
+    "brands": [
+      { "name": "Premier Cement", "price": 510 },
+      { "name": "Sha Cement", "price": 500 },
+      { "name": "Mir Cement", "price": 495 }
+    ],
     "image": "https://bpcproc.com/assets/OPC%20Cement%20(50kg).webp"
   },
   {
     "id": "p4",
     "name": "Ceramic Floor Tiles 24x24",
     "category": "tiles",
-    "brand": "As per Brands",
     "origin": "Savar, Dhaka",
     "quality": "Premium",
     "unit": "per sft",
-    "price": 145,
     "leadTimeDays": 2,
     "rating": 4.3,
     "weight": 0.75,
-    "brands": ["R.A.K Tiles", "Akij Tiles", "Great Wall Tiles"],
+    "brands": [
+      { "name": "R.A.K Tiles", "price": 145 },
+      { "name": "Akij Tiles", "price": 150 },
+      { "name": "Great Wall Tiles", "price": 140 }
+    ],
     "image": "https://bpcproc.com/assets/Ceramic%20Floor%20Tiles%2024x24.webp"
   },
   {
     "id": "p5",
     "name": "CPVC Pipe 1 inch",
     "category": "sanitary",
-    "brand": "As per Brands",
     "origin": "Narayanganj",
     "quality": "Standard",
     "unit": "per ft",
-    "price": 32,
     "leadTimeDays": 2,
     "rating": 4.1,
     "weight": 0.35,
-    "brands": ["Partex Pipes", "Gazi Pipes", "Akij Pipes"],
+    "brands": [
+      { "name": "Partex Pipes", "price": 32 },
+      { "name": "Gazi Pipes", "price": 34 },
+      { "name": "Akij Pipes", "price": 30 }
+    ],
     "image": "https://bpcproc.com/assets/CPVC%20Pipe%201%20inch.webp"
   },
   {
     "id": "p6",
     "name": "3-Core Copper Cable 2.5mm",
     "category": "cables",
-    "brand": "As per Brands",
     "origin": "Sreepur, Gazipur",
     "quality": "Premium",
     "unit": "per meter",
-    "price": 32,
     "leadTimeDays": 1,
     "rating": 4.6,
     "weight": 0.25,
-    "brands": ["BRB Cable", "Paradise Cable", "Polycab"],
+    "brands": [
+      { "name": "BRB Cable", "price": 32 },
+      { "name": "Paradise Cable", "price": 31 },
+      { "name": "Polycab", "price": 30 }
+    ],
     "image": "https://bpcproc.com/assets/3-Core%20Copper%20Cable%202.5mm.webp"
   }
 ]
