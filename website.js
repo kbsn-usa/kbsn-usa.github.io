@@ -25,8 +25,8 @@ const emptyCartEl = document.getElementById("empty-cart");
 async function init() {
   try {
     const [prodRes, distRes] = await Promise.all([
-      fetch("products.json"),
-      fetch("districts.json"),
+      fetch("data/products.json"),
+      fetch("data/districts.json"),
     ]);
     products = await prodRes.json();
     districtRates = await distRes.json();
