@@ -1,8 +1,8 @@
 [
-  // --- Tier 1: Dhaka ---
+  // --- Dhaka ---
   { "name": "Dhaka", "minCost": 125, "perKgRate": 2.0 },
 
-  // --- Tier 2: Neighboring districts ---
+  // --- Dhaka Neighboring districts ---
   { "name": "Gazipur", "minCost": 150, "perKgRate": 2.2 },
   { "name": "Narayanganj", "minCost": 150, "perKgRate": 2.3 },
   { "name": "Manikganj", "minCost": 150, "perKgRate": 2.3 },
@@ -15,7 +15,7 @@
   { "name": "Kishoreganj", "minCost": 150, "perKgRate": 2.3 },
   { "name": "Tangail", "minCost": 150, "perKgRate": 2.4 },
 
-  // --- Tier 3: Mid-distance districts ---
+  // --- Dhaka Mid-distance districts ---
   { "name": "Cumilla", "minCost": 175, "perKgRate": 2.5 },
   { "name": "Brahmanbaria", "minCost": 175, "perKgRate": 2.6 },
   { "name": "Chandpur", "minCost": 175, "perKgRate": 2.5 },
@@ -33,7 +33,7 @@
   { "name": "Magura", "minCost": 175, "perKgRate": 2.6 },
   { "name": "Narail", "minCost": 175, "perKgRate": 2.6 },
 
-  // --- Tier 4: Far / Remote districts ---
+  // --- Dhaka Far-Remote districts ---
   { "name": "Chattogram", "minCost": 200, "perKgRate": 2.8 },
   { "name": "Cox's Bazar", "minCost": 200, "perKgRate": 3.0 },
   { "name": "Khagrachhari", "minCost": 200, "perKgRate": 3.1 },
