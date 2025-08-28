@@ -19,19 +19,26 @@ const searchInputEl = document.getElementById("searchInput");
 const categoryFiltersEl = document.getElementById("categoryFilters");
 const emptyCartEl = document.getElementById("empty-cart");
 
-/* ================== DISTRICTS ================== */
+/* ================== DISTRICTS (64) ================== */
 const allDistricts = [
-  "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
-  "Tangail","Kishoreganj","Narsingdi","Chattogram","Cox's Bazar",
-  "Khulna","Rajshahi","Sylhet","Rangpur","Barisal","Mymensingh",
-  "Cumilla","Feni","Noakhali","Lakshmipur","Chandpur","Brahmanbaria",
-  "Habiganj","Moulvibazar","Sunamganj","Pabna","Bogura","Joypurhat",
-  "Naogaon","Natore","Sirajganj","Jashore","Satkhira","Magura",
-  "Jhenaidah","Narail","Kushtia","Meherpur","Chuadanga","Barishal",
-  "Patuakhali","Bhola","Pirojpur","Jhalokati","Barguna","Mymensingh",
-  "Netrokona","Sherpur","Jamalpur","Dinajpur","Thakurgaon","Panchagarh",
-  "Nilphamari","Lalmonirhat","Kurigram","Gaibandha","Rangpur",
-  "Bagerhat","Khagrachhari","Rangamati","Bandarban"
+  // Dhaka Division
+  "Dhaka","Gazipur","Kishoreganj","Manikganj","Munshiganj","Narayanganj","Narsingdi","Tangail",
+  "Faridpur","Gopalganj","Madaripur","Rajbari","Shariatpur",
+  // Mymensingh Division
+  "Mymensingh","Jamalpur","Netrokona","Sherpur",
+  // Chattogram Division
+  "Chattogram","Cox's Bazar","Cumilla","Feni","Brahmanbaria","Chandpur","Noakhali","Lakshmipur",
+  "Khagrachhari","Rangamati","Bandarban",
+  // Sylhet Division
+  "Sylhet","Moulvibazar","Habiganj","Sunamganj",
+  // Rajshahi Division
+  "Rajshahi","Chapainawabganj","Naogaon","Natore","Joypurhat","Bogura","Pabna","Sirajganj",
+  // Rangpur Division
+  "Rangpur","Dinajpur","Kurigram","Gaibandha","Nilphamari","Lalmonirhat","Panchagarh","Thakurgaon",
+  // Khulna Division
+  "Khulna","Bagerhat","Satkhira","Jashore","Jhenaidah","Magura","Narail","Kushtia","Chuadanga","Meherpur",
+  // Barishal Division
+  "Barishal","Bhola","Patuakhali","Barguna","Jhalokati","Pirojpur"
 ];
 
 /* ================== INIT ================== */
@@ -56,13 +63,6 @@ function fmtMoney(n) {
   return "৳" + num.toLocaleString();
 }
 
-/**
- * Normalize product.brands into array of { name, price }
- * Supports:
- * - New format: [{name, price}, ...]
- * - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
- * - Legacy string: "Akij, BSRM"     (uses product.price for each)
- */
 function getBrandObjects(prod) {
   if (!prod || prod.brands == null) return [];
   const basePrice = Number(prod.price) || 0;
@@ -103,8 +103,7 @@ function getPriceForBrand(prod, brandName) {
   const brands = getBrandObjects(prod);
   const found = brands.find(b => b.name === brandName);
   if (found) return Number(found.price) || 0;
-  // fallback to product.price if no brand match
-  return Number(prod.price) || 0;
+  return Number(prod.price) || 0; // fallback
 }
 
 function getMinPrice(prod) {
@@ -198,8 +197,7 @@ function addToCart(id) {
   const defaultBrandName = brandObjs[0]?.name || "";
   const defaultUnitPrice = brandObjs[0]?.price ?? (Number(product.price) || 0);
 
-  // If item already in cart with the same product & same brand, bump qty.
-  // If exists but brand differs, we'll add as a separate line item.
+  // If item already in cart with same product & same brand, bump qty
   const existingIndex = CART.findIndex(
     i => i.id === id && i.selectedBrand === defaultBrandName
   );
@@ -254,16 +252,21 @@ function saveCart() {
 }
 
 function getDeliveryCost(totalWeight) {
-  const insideDhaka = [
-    "Dhaka","Gazipur","Narayanganj","Munshiganj","Manikganj",
-    "Tangail","Kishoreganj","Narsingdi"
-  ];
-  const perKgRate = insideDhaka.includes(DISTRICT) ? 2.1 : 3.5;
-  const minCost = insideDhaka.includes(DISTRICT) ? 150 : 200;
-  const calc = totalWeight * perKgRate;
-  return Math.max(calc, minCost);
+  // Pull config for the selected district with fallback
+  const { minCost, perKgRate } = getDeliveryConfigByDistrict(DISTRICT || "");
+  const calc = (Number(totalWeight) || 0) * (Number(perKgRate) || 0);
+  return Math.max(calc, Number(minCost) || 0);
 }
 
+async function calculateDeliveryCost(selectedDistrict, totalWeight) {
+  const response = await fetch("data/products.json");
+  const districts = await response.json();
+
+  const district = districts.find(d => d.name === selectedDistrict);
+  if (!district) return 0;
+
+  return Math.max(district.minCost, totalWeight * district.perKgRate);
+}
 /* ================== CART RENDER ================== */
 function renderCart() {
   if (!cartItemsEl) return;
@@ -330,14 +333,19 @@ function renderCart() {
 
     cartItemsEl.appendChild(div);
   });
-
+  
   const deliveryCost = getDeliveryCost(totalWeight);
   const grandTotal = subtotal + deliveryCost;
+
+  const deliveryCfg = getDeliveryConfigByDistrict(DISTRICT || "");
 
   cartSummaryEl.innerHTML = `
     <div class="space-y-2 text-sm">
       <div class="flex justify-between"><span>Subtotal</span><span>${fmtMoney(subtotal)}</span></div>
-      <div class="flex justify-between"><span>Delivery</span><span>${fmtMoney(deliveryCost)}</span></div>
+      <div class="flex justify-between">
+        <span>Delivery (${DISTRICT || "Select district"} — min ${fmtMoney(deliveryCfg.minCost)}, ${deliveryCfg.perKgRate}/kg)</span>
+        <span>${fmtMoney(deliveryCost)}</span>
+      </div>
       <div class="flex justify-between"><span>Deliver To</span><span>${DISTRICT || "Not selected"}</span></div>
       <div class="flex justify-between font-bold text-base pt-1 border-t"><span>Total</span><span>${fmtMoney(grandTotal)}</span></div>
     </div>
@@ -386,6 +394,13 @@ function renderDistricts() {
     localStorage.setItem("bpc-DISTRICTS", DISTRICT);
     renderCart();
   });
+}
+
+/* ================== CATEGORY INIT (after products load) ================== */
+function initCategoryIfMissing() {
+  if (!products.some(p => p.category === ACTIVE_CATEGORY)) {
+    ACTIVE_CATEGORY = "all";
+  }
 }
 
 /* ================== EXPOSED (for inline handlers) ================== */
