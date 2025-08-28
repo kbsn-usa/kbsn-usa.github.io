@@ -49,13 +49,6 @@ function fmtMoney(n) {
   return "৳" + num.toLocaleString();
 }
 
-/**
- * Normalize product.brands into array of { name, price }
- * Supports:
- *  - New format: [{name, price}, ...]
- *  - Legacy array: ["Akij", "BSRM"]  (uses product.price for each)
- *  - Legacy string: "Akij, BSRM"     (uses product.price for each)
- */
 function getBrandObjects(prod) {
   if (!prod || prod.brands == null) return [];
   const basePrice = Number(prod.price) || 0;
@@ -261,6 +254,75 @@ function saveCart() {
   renderCart();
 }
 
+let selectedProduct = null;
+
+// Open modal with product details
+function openProductModal(product) {
+  selectedProduct = product;
+
+  document.getElementById("modalImage").src = product.image;
+  document.getElementById("modalName").innerText = product.name;
+  document.getElementById("modalCategory").innerText = "Category: " + product.category;
+  document.getElementById("modalOrigin").innerText = "Origin: " + product.origin;
+  document.getElementById("modalQuality").innerText = "Quality: " + product.quality;
+  document.getElementById("modalUnit").innerText = "Unit: " + product.unit;
+  document.getElementById("modalRating").innerText = "Rating: " + product.rating;
+
+  const brandSelect = document.getElementById("modalBrand");
+  brandSelect.innerHTML = "";
+
+  // Add brand options
+  for (const brand in product.brandPrices) {
+    const opt = document.createElement("option");
+    opt.value = brand;
+    opt.textContent = `${brand} (${product.brandPrices[brand]} ৳)`;
+    brandSelect.appendChild(opt);
+  }
+
+  document.getElementById("modalQty").value = 1;
+  updateModalPrice();
+
+  document.getElementById("productModal").classList.remove("hidden");
+}
+
+// Close modal
+document.getElementById("closeModal").addEventListener("click", () => {
+  document.getElementById("productModal").classList.add("hidden");
+});
+
+// Quantity buttons
+document.getElementById("qtyMinus").addEventListener("click", () => {
+  let qty = parseInt(document.getElementById("modalQty").value);
+  if (qty > 1) {
+    document.getElementById("modalQty").value = qty - 1;
+    updateModalPrice();
+  }
+});
+document.getElementById("qtyPlus").addEventListener("click", () => {
+  let qty = parseInt(document.getElementById("modalQty").value);
+  document.getElementById("modalQty").value = qty + 1;
+  updateModalPrice();
+});
+
+// Update price
+function updateModalPrice() {
+  const brand = document.getElementById("modalBrand").value;
+  const qty = parseInt(document.getElementById("modalQty").value);
+  const price = selectedProduct.brandPrices[brand] * qty;
+  document.getElementById("modalPrice").innerText = price;
+}
+
+// Add to cart
+document.getElementById("addToCartFromModal").addEventListener("click", () => {
+  const brand = document.getElementById("modalBrand").value;
+  const qty = parseInt(document.getElementById("modalQty").value);
+  addToCart(selectedProduct, brand, qty);
+  document.getElementById("productModal").classList.add("hidden");
+});
+
+// On brand change update price
+document.getElementById("modalBrand").addEventListener("change", updateModalPrice);
+document.getElementById("modalQty").addEventListener("input", updateModalPrice);
 /* ================== CART RENDER ================== */
 function renderCart() {
   if (!cartItemsEl) return;
