@@ -10,9 +10,9 @@
     "rating": 4.7,
     "weight": 2.2,
     "brands": [
-      { "name": "Akij Bricks", "price": 11 },
-      { "name": "Eco Bricks", "price": 12 },
-      { "name": "Mir Concretes", "price": 10.5 }
+      { "name": "Akij Bricks", "price": 9 },
+      { "name": "Eco Bricks", "price": 9.5 },
+      { "name": "Mir Concretes", "price": 8.5 }
     ],
     "image": "https://bpcproc.com/assets/Solid%20Clay%20Bricks%20(1st%20Class).webp"
   },
@@ -27,9 +27,9 @@
     "rating": 4.8,
     "weight": 1000,
     "brands": [
-      { "name": "RSRM", "price": 88500 },
-      { "name": "BSRM", "price": 89000 },
-      { "name": "AKS", "price": 88000 }
+      { "name": "RSRM", "price": 84500 },
+      { "name": "BSRM", "price": 85000 },
+      { "name": "AKS", "price": 84000 }
     ],
     "image": "https://bpcproc.com/assets/60%20Grade%20Rod%20(12mm).webp"
   },
@@ -44,9 +44,9 @@
     "rating": 4.5,
     "weight": 50,
     "brands": [
-      { "name": "Premier Cement", "price": 510 },
-      { "name": "Sha Cement", "price": 500 },
-      { "name": "Mir Cement", "price": 495 }
+      { "name": "Premier Cement", "price": 450 },
+      { "name": "Sha Cement", "price": 470 },
+      { "name": "Mir Cement", "price": 430 }
     ],
     "image": "https://bpcproc.com/assets/OPC%20Cement%20(50kg).webp"
   },
@@ -78,9 +78,9 @@
     "rating": 4.1,
     "weight": 0.35,
     "brands": [
-      { "name": "Partex Pipes", "price": 32 },
-      { "name": "Gazi Pipes", "price": 34 },
-      { "name": "Akij Pipes", "price": 30 }
+      { "name": "Partex Pipes", "price": 29 },
+      { "name": "Gazi Pipes", "price": 28.5 },
+      { "name": "Akij Pipes", "price": 29.5 }
     ],
     "image": "https://bpcproc.com/assets/CPVC%20Pipe%201%20inch.webp"
   },
@@ -95,8 +95,8 @@
     "rating": 4.6,
     "weight": 0.25,
     "brands": [
-      { "name": "BRB Cable", "price": 32 },
-      { "name": "Paradise Cable", "price": 31 },
+      { "name": "BRB Cable", "price": 30.5 },
+      { "name": "Paradise Cable", "price": 29.5 },
       { "name": "Polycab", "price": 30 }
     ],
     "image": "https://bpcproc.com/assets/3-Core%20Copper%20Cable%202.5mm.webp"
