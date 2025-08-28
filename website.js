@@ -213,7 +213,7 @@ function showProductDetails(product) {
     <p><strong>Lead Time:</strong> ${product.leadTimeDays} days</p>
     <p><strong>Rating:</strong> ⭐ ${product.rating}</p>
     <p><strong>Weight:</strong> ${product.weight} kg</p>
-    <h3>Available Brands & Prices</h3>
+    <h3 class="text-lg font-semibold mt-2">Available Brands & Prices</h3>
     <ul>
       ${product.brands.map(b => `<li>${b.name}: ${b.price} ৳</li>`).join("")}
     </ul>
@@ -411,7 +411,7 @@ function renderCart() {
   cartSummaryEl.innerHTML = `
     <div class="space-y-2 text-sm">
       <div class="flex justify-between"><span>Subtotal</span><span>${fmtMoney(subtotal)}</span></div>
-      <div class="flex justify-between"><span>Delivery</span><span>${fmtMoney(deliveryCost)}</span></div>
+      <div class="flex justify-between"><span>Delivery Cost</span><span>${fmtMoney(deliveryCost)}</span></div>
       <div class="flex justify-between"><span>Deliver To</span><span>${DISTRICT || "Not selected"}</span></div>
       <div class="flex justify-between font-bold text-base pt-1 border-t"><span>Total</span><span>${fmtMoney(grandTotal)}</span></div>
     </div>
