@@ -25,8 +25,8 @@ const emptyCartEl = document.getElementById("empty-cart");
 async function init() {          
   try {          
     const [prodRes, distRes] = await Promise.all([          
-      fetch("products.json"),          
-      fetch("districts.json"),          
+      fetch("https://github.com/kbsn-usa/kbsn-usa.github.io/blob/main/data/products.json"),          
+      fetch("https://github.com/kbsn-usa/kbsn-usa.github.io/blob/main/data/districts.json"),          
     ]);          
     products = await prodRes.json();          
     districtRates = await distRes.json();          
