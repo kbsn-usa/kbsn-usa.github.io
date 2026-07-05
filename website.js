@@ -421,7 +421,7 @@ function renderCart() {
       <div class="flex justify-between"><span>Deliver To</span><span>${DISTRICT || "Not selected"}</span></div>
       <div class="flex justify-between font-bold text-base pt-1 border-t"><span>Total</span><span>${fmtMoney(grandTotal)}</span></div>
     </div>
-    <button class="w-full mt-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow hover:opacity-90 transition">
+    <button onclick="openCheckout()" class="w-full mt-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow hover:opacity-90 transition">
       Proceed to Checkout
     </button>
     <p class="text-[11px] text-neutral-500 mt-2 text-center">
@@ -476,3 +476,177 @@ window.updateBrand = updateBrand;
 window.removeFromCart = removeFromCart;
 window.openCart = openCart;
 window.closeCart = closeCart;
+
+
+/* ================== CHECKOUT (auto order email) ================== */
+const EMAILJS_SERVICE_ID = "service_bpcproc_2025";
+const EMAILJS_TEMPLATE_ID = "template_bpcproc_request";
+
+const checkoutModalEl   = document.getElementById("checkout-modal");
+const checkoutFormViewEl = document.getElementById("checkout-form-view");
+const checkoutSuccessEl = document.getElementById("checkout-success");
+const coItemsEl    = document.getElementById("co-items");
+const coSubtotalEl = document.getElementById("co-subtotal");
+const coDeliveryEl = document.getElementById("co-delivery");
+const coTotalEl    = document.getElementById("co-total");
+const coDistrictEl = document.getElementById("co-district");
+const coFormEl     = document.getElementById("checkoutForm");
+const coSubmitBtn  = document.getElementById("coSubmitBtn");
+const coBtnTextEl  = document.getElementById("coBtnText");
+const coBtnSpinnerEl = document.getElementById("coBtnSpinner");
+
+function notify(msg, type = "success") {
+  if (typeof showToast === "function") { showToast(msg, type); return; }
+  if (window.Toastify) {
+    Toastify({ text: msg, duration: 3000, gravity: "top", position: "right",
+      style: { background: type === "success" ? "#059669" : "#dc2626" } }).showToast();
+    return;
+  }
+  alert(msg);
+}
+
+function cartTotals() {
+  let subtotal = 0, totalWeight = 0;
+  CART.forEach(i => {
+    subtotal += (i.unitPrice || 0) * i.qty;
+    totalWeight += (i.weight || 0) * i.qty;
+  });
+  const delivery = getDeliveryCost(totalWeight);
+  return { subtotal, totalWeight, delivery, total: subtotal + delivery };
+}
+
+function refreshCheckoutSummary() {
+  if (!coItemsEl) return;
+  coItemsEl.innerHTML = CART.map(i => `
+    <div class="flex justify-between gap-3">
+      <span class="text-neutral-700">${i.name}${i.selectedBrand ? ` <span class="text-neutral-400">(${i.selectedBrand})</span>` : ""} &times; ${i.qty}</span>
+      <span class="font-medium whitespace-nowrap">${fmtMoney((i.unitPrice || 0) * i.qty)}</span>
+    </div>`).join("");
+  const t = cartTotals();
+  coSubtotalEl.textContent = fmtMoney(t.subtotal);
+  coDeliveryEl.textContent = DISTRICT ? fmtMoney(t.delivery) : "Select district";
+  coTotalEl.textContent = fmtMoney(t.total);
+}
+
+function openCheckout() {
+  if (!checkoutModalEl) return;
+  if (CART.length === 0) { notify("Your cart is empty.", "error"); return; }
+  coDistrictEl.innerHTML =
+    `<option value="" disabled ${DISTRICT === "" ? "selected" : ""}>Delivery District *</option>` +
+    allDistricts.map(d => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`).join("");
+  checkoutFormViewEl.classList.remove("hidden");
+  checkoutSuccessEl.classList.add("hidden");
+  refreshCheckoutSummary();
+  checkoutModalEl.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  closeCart();
+  if (window.lucide && lucide.createIcons) lucide.createIcons();
+}
+
+function closeCheckout() {
+  if (!checkoutModalEl) return;
+  checkoutModalEl.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+if (coDistrictEl) {
+  coDistrictEl.addEventListener("change", (e) => {
+    DISTRICT = e.target.value;
+    localStorage.setItem("bpc-DISTRICTS", DISTRICT);
+    if (districtSelectEl) districtSelectEl.value = DISTRICT;
+    renderCart();
+    refreshCheckoutSummary();
+  });
+}
+
+function makeOrderId() {
+  const d = new Date();
+  const ymd = String(d.getFullYear()).slice(2) +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    String(d.getDate()).padStart(2, "0");
+  return "BPC-" + ymd + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+}
+
+function buildOrderMessage(orderId, c) {
+  const t = cartTotals();
+  const lines = CART.map((i, n) =>
+    `${n + 1}. ${i.name}${i.selectedBrand ? " — Brand: " + i.selectedBrand : ""} — ${i.qty} x ${fmtMoney(i.unitPrice || 0)} = ${fmtMoney((i.unitPrice || 0) * i.qty)}`
+  );
+  return [
+    "=== NEW ORDER REQUEST (Website Cart) ===",
+    "Order ID: " + orderId,
+    "Date: " + new Date().toLocaleString("en-GB"),
+    "",
+    "--- CUSTOMER ---",
+    "Name: " + c.name,
+    "Phone: " + c.phone,
+    "Email: " + (c.email || "Not provided"),
+    "District: " + DISTRICT,
+    "Address: " + c.address,
+    "",
+    "--- ITEMS ---",
+    ...lines,
+    "",
+    "Subtotal: " + fmtMoney(t.subtotal),
+    "Delivery (" + DISTRICT + "): " + fmtMoney(t.delivery),
+    "TOTAL: " + fmtMoney(t.total),
+    "Approx. weight: " + t.totalWeight + " kg",
+    "",
+    "Payment: NOT PAID — arrange on confirmation call (bKash / Nagad / Bank / COD)",
+    c.notes ? "Customer notes: " + c.notes : ""
+  ].join("\n");
+}
+
+if (coFormEl) {
+  coFormEl.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (CART.length === 0) { notify("Your cart is empty.", "error"); return; }
+    if (!DISTRICT) { notify("Please select your delivery district.", "error"); return; }
+    if (!window.emailjs) { notify("Email service failed to load. Please order via WhatsApp.", "error"); return; }
+
+    const customer = {
+      name: document.getElementById("coName").value.trim(),
+      phone: document.getElementById("coPhone").value.trim(),
+      email: document.getElementById("coEmail").value.trim(),
+      address: document.getElementById("coAddress").value.trim(),
+      notes: document.getElementById("coNotes").value.trim()
+    };
+    const orderId = makeOrderId();
+
+    coBtnTextEl.textContent = "Sending...";
+    coBtnSpinnerEl.classList.remove("hidden");
+    coSubmitBtn.disabled = true;
+
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      name: customer.name + " (ORDER " + orderId + ")",
+      phone: customer.phone,
+      address: DISTRICT + " — " + customer.address,
+      email: customer.email || "Not provided",
+      message: buildOrderMessage(orderId, customer)
+    }).then(function () {
+      document.getElementById("co-order-id").textContent = orderId;
+      const wa = document.getElementById("co-wa-link");
+      if (wa) wa.href = "https://wa.me/8801714736623?text=" +
+        encodeURIComponent("Hi BPC, I just sent order " + orderId + " from the website.");
+      checkoutFormViewEl.classList.add("hidden");
+      checkoutSuccessEl.classList.remove("hidden");
+      CART = [];
+      saveCart();
+      coFormEl.reset();
+      notify("Order request sent!", "success");
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }).catch(function (err) {
+      console.error("Order email error:", err);
+      notify("Failed to send order. Please try again or WhatsApp us.", "error");
+    }).finally(function () {
+      coBtnTextEl.textContent = "Send Order Request";
+      coBtnSpinnerEl.classList.add("hidden");
+      coSubmitBtn.disabled = false;
+    });
+  });
+}
+
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCheckout(); });
+
+window.openCheckout = openCheckout;
+window.closeCheckout = closeCheckout;
