@@ -160,7 +160,7 @@ function renderProducts() {
   });
 
   if (filtered.length === 0) {
-    productListEl.innerHTML = `<p class="text-gray-500">No products found.</p>`;
+    productListEl.innerHTML = `<p class="text-neutral-500 col-span-full text-center py-10">No products found. Try a different search or category.</p>`;
     return;
   }
 
@@ -169,23 +169,29 @@ function renderProducts() {
     const minPrice = getMinPrice(p);
     const brands = getBrandObjects(p);
     const brandBadge = brands.length
-      ? `<span class="inline-block text-[11px] text-neutral-600 bg-neutral-100 border rounded px-2 py-0.5 mt-1">${brands.length} brand${brands.length>1?'s':''}</span>`
+      ? `<span class="inline-block text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5 mt-2">${brands.length} brand${brands.length>1?'s':''} available</span>`
       : "";
 
     return `
-      <div class="border rounded-lg p-3 shadow hover:shadow-lg transition bg-white cursor-pointer product-card"
+      <div class="product-card group relative bg-white rounded-2xl overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-[0_24px_48px_-16px_rgba(10,22,40,.35)] cursor-pointer"
            data-id="${p.id}">
-        <img src="${p.image}" alt="${p.name}" class="w-full h-40 object-cover rounded">
-        <h3 class="text-lg font-semibold mt-2">${p.name}</h3>
-        <p class="text-sm text-gray-500">${p.origin || ""}</p>
-        <p class="text-gray-700 font-bold">From ${fmtMoney(minPrice)}</p>
-        <p class="text-xs text-gray-500">Unit: ${p.unit || "-"}</p>
-        <p class="text-xs text-gray-500">Weight: ${p.weight} kg</p>
-        ${brandBadge}
-        <button onclick="addToCart('${p.id}')"
-          class="mt-3 w-full bg-black text-white py-2 rounded hover:bg-gray-800">
-          Add to Cart
-        </button>
+        <div class="overflow-hidden">
+          <img src="${p.image}" alt="${p.name}" class="w-full h-44 object-cover group-hover:scale-105 transition duration-500">
+        </div>
+        <div class="p-4">
+          <h3 class="text-lg font-semibold leading-snug">${p.name}</h3>
+          <p class="text-xs text-neutral-500 mt-0.5">${p.origin || ""}</p>
+          <p class="mt-2 text-lg font-bold text-emerald-600" style="font-family:Archivo,ui-sans-serif,sans-serif">From ${fmtMoney(minPrice)}</p>
+          <div class="flex gap-3 text-xs text-neutral-500 mt-1">
+            <span>Unit: ${p.unit || "-"}</span>
+            <span>Weight: ${p.weight} kg</span>
+          </div>
+          ${brandBadge}
+          <button onclick="addToCart('${p.id}')"
+            class="mt-3 w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white py-2.5 rounded-xl font-semibold shadow hover:opacity-90 transition">
+            Add to Cart
+          </button>
+        </div>
       </div>`;
   }).join("");
 
@@ -237,9 +243,9 @@ function renderCategories() {
   categoryFiltersEl.innerHTML = categories.map((cat) => `
     <button
       onclick="setCategory('${cat}')"
-      class="px-3 py-1 rounded-full border ${ACTIVE_CATEGORY === cat
-        ? "bg-black text-white"
-        : "bg-white text-gray-600 hover:bg-gray-100"}"
+      class="px-4 py-1.5 rounded-full border text-sm font-medium transition ${ACTIVE_CATEGORY === cat
+        ? "bg-gradient-to-r from-emerald-600 to-green-500 text-white border-transparent shadow"
+        : "bg-white text-neutral-600 border-neutral-200 hover:border-emerald-300 hover:text-emerald-700"}"
     >
       ${cat.charAt(0).toUpperCase() + cat.slice(1)}
     </button>
