@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Top Construction Material Suppliers in Bangladesh (2025) – BPC</title>
+  <title>Top Construction Material Suppliers in Bangladesh – BPC</title>
   <meta name="description" content="Find the best suppliers of cement, steel, bricks, glass, blocks, pipes, and paints in Bangladesh. Trusted companies for your construction project.">
   <link rel="icon" href="../assets/logo.webp" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,11 +41,11 @@
   <!-- Main -->
   <main class="container mx-auto py-16 px-4">
     <h1 class="text-3xl md:text-4xl font-bold text-center mb-10">
-      Top Construction Material Suppliers in Bangladesh (2025)
+      Top Construction Material Suppliers in Bangladesh
     </h1>
     <p class="text-center text-gray-600 max-w-2xl mx-auto mb-16">
       If you are building in Bangladesh, you need reliable suppliers for cement, steel, bricks, glass, blocks, pipes, and paints. 
-      Here are the most trusted companies in 2025 to support your construction projects.
+      Here are the most trusted companies to support your construction projects.
     </p>
 
     <div class="space-y-16">
@@ -333,14 +333,20 @@
 
   <!-- Footer -->
   <footer class="bg-white border-t mt-16">
-    <div class="container mx-auto text-center py-6 text-gray-600 text-sm">
-      © 2025 BPC – All rights reserved.
+    <div class="container mx-auto text-center py-6 text-gray-600 text-sm space-y-2">
+      <p class="space-x-1">
+        <a href="privacy-policy.html" class="hover:text-blue-600 hover:underline">Privacy Policy</a> &middot;
+        <a href="terms-and-conditions.html" class="hover:text-blue-600 hover:underline">Terms &amp; Conditions</a> &middot;
+        <a href="return-refund-policy.html" class="hover:text-blue-600 hover:underline">Return &amp; Refund Policy</a>
+      </p>
+      <p>© <span id="year"></span> BPC – All rights reserved.</p>
     </div>
   </footer>
 
   <!-- Feather Icons -->
   <script>
     feather.replace();
+    document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
 </html>

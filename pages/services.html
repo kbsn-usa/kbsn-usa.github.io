@@ -64,11 +64,19 @@
 
   <!-- Footer -->
   <footer class="bg-white border-t mt-16">
-    <div class="container mx-auto text-center py-6 text-gray-600 text-sm">
-      © 2025 BPC – All rights reserved.
+    <div class="container mx-auto text-center py-6 text-gray-600 text-sm space-y-2">
+      <p class="space-x-1">
+        <a href="privacy-policy.html" class="hover:text-blue-600 hover:underline">Privacy Policy</a> &middot;
+        <a href="terms-and-conditions.html" class="hover:text-blue-600 hover:underline">Terms &amp; Conditions</a> &middot;
+        <a href="return-refund-policy.html" class="hover:text-blue-600 hover:underline">Return &amp; Refund Policy</a>
+      </p>
+      <p>© <span id="year"></span> BPC – All rights reserved.</p>
     </div>
   </footer>
 
-  <script>feather.replace();</script>
+  <script>
+    feather.replace();
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
