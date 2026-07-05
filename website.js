@@ -536,6 +536,8 @@ function openCheckout() {
     allDistricts.map(d => `<option value="${d}" ${d === DISTRICT ? "selected" : ""}>${d}</option>`).join("");
   checkoutFormViewEl.classList.remove("hidden");
   checkoutSuccessEl.classList.add("hidden");
+  const coFbOpen = document.getElementById("co-fallback");
+  if (coFbOpen) coFbOpen.classList.add("hidden");
   refreshCheckoutSummary();
   checkoutModalEl.classList.remove("hidden");
   document.body.style.overflow = "hidden";
@@ -612,6 +614,8 @@ if (coFormEl) {
       notes: document.getElementById("coNotes").value.trim()
     };
     const orderId = makeOrderId();
+    const coFbRetry = document.getElementById("co-fallback");
+    if (coFbRetry) coFbRetry.classList.add("hidden");
 
     coBtnTextEl.textContent = "Sending...";
     coBtnSpinnerEl.classList.remove("hidden");
@@ -638,6 +642,13 @@ if (coFormEl) {
     }).catch(function (err) {
       console.error("Order email error:", err);
       notify("Failed to send order. Please try again or WhatsApp us.", "error");
+      const coFb = document.getElementById("co-fallback");
+      const coFbWa = document.getElementById("co-fallback-wa");
+      if (coFb && coFbWa) {
+        coFbWa.href = "https://wa.me/8801714736623?text=" +
+          encodeURIComponent(buildOrderMessage(orderId, customer));
+        coFb.classList.remove("hidden");
+      }
     }).finally(function () {
       coBtnTextEl.textContent = "Send Order Request";
       coBtnSpinnerEl.classList.add("hidden");
