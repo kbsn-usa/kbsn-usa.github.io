@@ -630,7 +630,7 @@ if (coFormEl) {
     }).then(function () {
       document.getElementById("co-order-id").textContent = orderId;
       const wa = document.getElementById("co-wa-link");
-      if (wa) wa.href = "https://wa.me/8801714736623?text=" +
+      if (wa) wa.href = "https://wa.me/..." +
         encodeURIComponent("Hi BPC, I just sent order " + orderId + " from the website.");
       checkoutFormViewEl.classList.add("hidden");
       checkoutSuccessEl.classList.remove("hidden");
@@ -645,7 +645,7 @@ if (coFormEl) {
       const coFb = document.getElementById("co-fallback");
       const coFbWa = document.getElementById("co-fallback-wa");
       if (coFb && coFbWa) {
-        coFbWa.href = "https://wa.me/8801714736623?text=" +
+        coFbWa.href = "https://wa.me/..." +
           encodeURIComponent(buildOrderMessage(orderId, customer));
         coFb.classList.remove("hidden");
       }
